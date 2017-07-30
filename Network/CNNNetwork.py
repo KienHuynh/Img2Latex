@@ -105,7 +105,6 @@ class FCN(nn.Module):
 
 		return F.log_softmax(x)
 
-
 class TestingNetwork:
 	def __init__(self):
 		print ('network init')
