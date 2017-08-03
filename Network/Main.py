@@ -22,11 +22,13 @@ testnet.setData(train_loader, test_loader)
 ######### TRAINING AND TESTING ##############
 #############################################
 
-for epoch in range(1):
-	testnet.train(epoch + 1)
-	pass
+#for epoch in range(1):
+#	testnet.train(epoch + 1)
+#	pass
 
-#testnet.loadModelFromFile('model/version1.mdl')
+testnet.loadModelFromFile('model/version1.mdl')
 testnet.test()
+
+print (testnet.conv1)
 
 #testnet.saveModelToFile('model/version1.mdl')
