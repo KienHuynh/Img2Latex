@@ -32,8 +32,8 @@ class Loader:
 		test_target = self.read_MNISTfile(path + 't10k-labels-idx1-ubyte')
 		
 
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
-		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.double)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.double)))
 
 		return Tensor_train, Tensor_test
 
