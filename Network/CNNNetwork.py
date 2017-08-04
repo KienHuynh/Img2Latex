@@ -7,6 +7,8 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 import numpy
 
+import WAP
+
 class Net(nn.Module):
 	def __init__(self):
 		super(Net, self).__init__()
@@ -113,15 +115,20 @@ class TestingNetwork:
 		########## ATTRIBUTE INIT ######################
 		################################################
 
+		self.using_cuda = False
 		self.batch_size = 64
 		self.learning_rate = 0.01
 		self.momentum = 0.5
 
 
-		self.model = Net()
+		self.model = WAP.WAP()
+		#self.model = Net()
 		#self.model = FCN()
 		
 		self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
+
+	def setCudaState(self, state = True):
+		self.using_cuda = state
 
 	def setData(self, train, test):
 		self.train_loader = train
@@ -131,12 +138,19 @@ class TestingNetwork:
 		self.model.train()
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
+			if self.using_cuda:
+				data, target = data.cuda(), target.cuda()
+
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
 
-			#print (type(output))
-			#print (output.data.numpy().shape)
+
+
+			print (type(output))
+			print (output.data.numpy().shape)
+
+			break
 
 			loss = F.nll_loss(output, target)
 			loss.backward()
@@ -155,6 +169,10 @@ class TestingNetwork:
 		correct = 0
 		   
 		for data, target in self.test_loader:
+
+			if self.using_cuda:
+				data, target = data.cuda(), target.cuda()
+
 			data, target = Variable(data.float(), volatile=True), Variable(target.long())
 			output = self.model(data)
 			test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss

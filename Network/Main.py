@@ -4,31 +4,43 @@ import torch
 import DatasetLoader as DL
 import CNNNetwork as testnetwork
 
-batch_size = 64
+batch_size = 1
+
+#############################################
+######### TESTING HARDWARE ##################
+#############################################
+
+using_cuda = False
+cuda_avail = torch.cuda.is_available()
 
 #############################################
 ######### DATA LOADING ######################
 #############################################
 
 loader = DL.Loader()
-train, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
+#train, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
+train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK.npy', '../data/CROHME/Binary/CROHMEBLOCK.npy')
+
 train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
 
 testnet = testnetwork.TestingNetwork()
 testnet.setData(train_loader, test_loader)
 
+if using_cuda and cuda_avail:
+	testnet.model.cuda()
+	testnet.setCudaState()
+
 #############################################
 ######### TRAINING AND TESTING ##############
 #############################################
 
-#for epoch in range(1):
-#	testnet.train(epoch + 1)
-#	pass
+for epoch in range(1):
+	testnet.train(epoch + 1)
+	pass
 
-testnet.loadModelFromFile('model/version1.mdl')
-testnet.test()
+#testnet.loadModelFromFile('model/version1.mdl')
+#testnet.test()
 
-print (testnet.conv1)
 
 #testnet.saveModelToFile('model/version1.mdl')
