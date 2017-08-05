@@ -10,7 +10,6 @@ import numpy
 class WAP(nn.Module):
 	def __init__(self):
 		super(WAP, self).__init__()
-		#self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
 		self.conv1_1 = nn.Conv2d(1, 32, 3, stride=1,padding=1)
 		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
 		self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
@@ -41,10 +40,30 @@ class WAP(nn.Module):
 
 		self.conv_temp = nn.Conv2d(128, 128, 3, stride=1,padding=1)
 
+		###############################################
+		########### ATTENTION #########################
+		###############################################
 
 
-		self.fc1 = nn.Linear(73728, 50)
+		###############################################
+		########### GRU ###############################
+		###############################################
+
+		#Outputs: output, h_n
+		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+
+		self.Coverage_MLP_From_H = nn.Linear(128, 1)
+		self.Coverage_MLP_From_A = nn.Linear(128, 1)
+
 		self.fc2 = nn.Linear(50, 10)
+
+		self.max_output_len  = 20
+
+
+		self.lstm = nn.LSTM(input_size=128, hidden_size=128, num_layers=1)
+
+	def setWordMaxLen(self, max_len):
+		self.max_output_len = max_len
 
 	def forward(self, x):
 
@@ -74,16 +93,69 @@ class WAP(nn.Module):
 		x = F.relu(self.conv4_3(x))
 		x = F.relu(self.conv4_4(x))
 
-		x = F.relu(self.pool_4(x))
+		FCN_Result = F.relu(self.pool_4(x))
 
-		return x
+		print (FCN_Result.data.numpy().shape)
+		################### END FCN ##########################
 
-		x = x.view(-1, 73728)
+		current_tensor_shape = FCN_Result.data.numpy().shape
 
 
-		x = F.relu(self.fc1(x))
-		x = self.fc2(x)
-		
-		#return x
+		################### START GRU ########################
+		GRU_hidden = None
 
-		return F.log_softmax(x)
+		# remember to fix dim//// symbol x index // And assign Starting
+		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, 128).zero_(), requires_grad=True)
+
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+
+		for RNN_iterate in range (self.max_output_len - 1):
+
+			multiplied_mat = FCN_Result.clone()
+
+			for batch_index in range(current_tensor_shape[0]):
+				for i in range (current_tensor_shape[1]):
+					multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
+
+			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
+			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
+			multiplied_mat = torch.squeeze(multiplied_mat, 2)
+			multiplied_mat = torch.squeeze(multiplied_mat, 2)
+			multiplied_mat = multiplied_mat.view(-1, 128)
+
+			multiplied_mat = torch.unsqueeze(multiplied_mat, dim = 1)
+
+			#print (multiplied_mat.data.numpy().shape)
+			
+			GRU_output, GRU_hidden = self.gru(multiplied_mat, GRU_hidden)
+
+
+			return_tensor = torch.cat([return_tensor, F.log_softmax(GRU_output)], 1)
+
+			#print (GRU_hidden.data.numpy().shape)
+
+			##########################################################
+			######### COVERAGE #######################################
+			##########################################################
+
+
+			from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
+			#from_a = self.Coverage_MLP_From_A(FCN_Result.data[batch_index,:,i,j])
+
+
+			for batch_index in range(current_tensor_shape[0]):
+				for i in range(current_tensor_shape[2]):
+					for j in range(current_tensor_shape[3]):
+						pass
+						
+						temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
+						from_a = self.Coverage_MLP_From_A(temp_tensor)
+
+						alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
+
+						#print(alpha_mat.data.numpy().shape)
+						
+		#print (return_tensor.data.numpy().shape)	
+
+		return return_tensor
+
