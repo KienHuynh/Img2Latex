@@ -32,28 +32,34 @@ class Loader:
 		test_set = self.read_MNISTfile(path + 't10k-images-idx3-ubyte')[:,numpy.newaxis]
 		test_target = self.read_MNISTfile(path + 't10k-labels-idx1-ubyte')
 		
-		print (train_set.shape)
-
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.double)))
-		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.double)))
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
 
 		return Tensor_train, Tensor_test
 
-	def read_CROHMEFolder(self, path):
-		return_data = []
-		print (return_data)
+	def read_CROHMEFile(self, path):
+		return numpy.load(path)
 
 
-	def generateTensorDatasetFromCROHMEFolder(self, path):
-		train_data = self.read_CROHMEFolder(path)
-		pass
+	def generateTensorDatasetFromCROHMEBinary(self, pathtrain, pathtest):
+		train_set = numpy.load(pathtrain)
+		test_set = numpy.load(pathtrain)
+
+		train_target = numpy.ones(len(train_set))
+		test_target = numpy.ones(len(test_set))
+		
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
+
+		return Tensor_train, Tensor_test
 
 	def getTensorDataset(self, input_data, target):
 		return torch.utils.data.TensorDataset(input_data, target)
 
 
-loader = Loader()
-loader.generateTensorDatasetFromCROHMEFolder('../data/CROHME/img/')
+
+#loader = Loader()
+#loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK.npy', '../data/CROHME/Binary/CROHMEBLOCK.npy')
 #trainn, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
 #train_loader = torch.utils.data.DataLoader(trainn, batch_size=100, shuffle=False)
 
