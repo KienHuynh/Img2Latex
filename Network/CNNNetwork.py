@@ -78,9 +78,9 @@ class TestingNetwork:
 			
 			print (output.data.numpy().shape)
 			print (target.data.numpy().shape)
-			loss = F.nll_loss(output, torch.unsqueeze(target, dim = 1))
 			break
 
+			loss = F.nll_loss(output, torch.unsqueeze(target, dim = 1))
 			
 			loss.backward()
 			self.optimizer.step()
