@@ -585,7 +585,7 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 			temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
 			
 			print (file)
-			print (len(temp_GT))
+			#print (len(temp_GT))
 			
 			if len(temp_result) == 0:
 				print ('unable to parse ' + file)

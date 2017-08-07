@@ -40,8 +40,8 @@ def buildVocab(path):
     return word_to_id, id_to_word
 
 def replaceW2ID(data, word_to_id):
-    print('data', data)
-    print('{',word_to_id['<s>'])
+    #print('data', data)
+    #print('{',word_to_id['<s>'])
 #    data = readSymbolfile(path)
     return [word_to_id[word] for word in data if word in word_to_id]
 
@@ -180,11 +180,11 @@ def parseGT(root, text, ignoreElems):
            
 def makeOneshotGT(path_to_ink, path_to_symbol):
     word_to_id, id_to_word = buildVocab(path_to_symbol)
-    print(id_to_word)
+    #print(id_to_word)
 #    chuan hoa text de tach ra duoc tung symbol va luu thanh mang trong data
 #    TODO
 #    data = ['\\forall', 'g', '\\in', 'G'] 
-    print(touchGT(path_to_ink))
+    #print(touchGT(path_to_ink))
     root = getRoot(path_to_ink)
     ignoreElems = ['traceFormat','annotation','trace','traceGroup']
     text = ['<s>']
@@ -214,17 +214,18 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
     
     for i in range(need_to_pad):
         text.append('$P')
-    print ('gt', len(text))
+    #print ('gt', len(text))
     
     vector = replaceW2ID(text, word_to_id)
     #print('vector', vector)
     
-    print (vector)
+    #print (vector)
 
+    return vector
 
-    tensor = torch.LongTensor(vector)
-    print('vector',Variable(tensor))
-    return Variable(tensor)
+    #tensor = torch.LongTensor(vector)
+    #print('vector',Variable(tensor))
+    #return Variable(tensor)
 
 #def makeGTVector(path_to_ink, path_to_symbol):
 #    word_to_id, id_to_word = buildVocab(path_to_symbol)
@@ -294,7 +295,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
-makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
+#makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
 
 
 #makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')

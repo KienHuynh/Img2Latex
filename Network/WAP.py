@@ -51,9 +51,11 @@ class WAP(nn.Module):
 		###############################################
 
 		#Outputs: output, h_n
-		self.gru = nn.GRU(input_size  = 128, hidden_size  = NetWorkConfig.NUM_OF_TOKEN)
+		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+		self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
 
-		self.Coverage_MLP_From_H = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 1)
+
+		self.Coverage_MLP_From_H = nn.Linear(128, 1)
 		self.Coverage_MLP_From_A = nn.Linear(128, 1)
 
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
@@ -127,6 +129,8 @@ class WAP(nn.Module):
 			
 			GRU_output, GRU_hidden = self.gru(multiplied_mat, GRU_hidden)
 
+			GRU_output = self.post_gru(torch.squeeze(GRU_output, dim = 1))
+			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 
 			return_tensor = torch.cat([return_tensor, F.log_softmax(GRU_output)], 1)
 
@@ -155,5 +159,5 @@ class WAP(nn.Module):
 						
 		#print (return_tensor.data.numpy().shape)	
 
-		return return_tensor
+		return torch.unsqueeze(return_tensor, dim = 1)
 
