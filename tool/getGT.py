@@ -40,8 +40,8 @@ def buildVocab(path):
     return word_to_id, id_to_word
 
 def replaceW2ID(data, word_to_id):
-    #print('data', data)
-    #print('{',word_to_id['{'])
+    print('data', data)
+    print('{',word_to_id['<s>'])
 #    data = readSymbolfile(path)
     return [word_to_id[word] for word in data if word in word_to_id]
 
@@ -122,7 +122,7 @@ def parseGT(root, text, ignoreElems):
                 text.append('{')
                 parseGT(child, text, ignoreElems)
                 text.append('}')  
-        elif root.tag[index:] == 'msub':
+        elif root.tag[index:] == 'msub' or root.tag[index:] == 'munder':
             n = 1
             for child in root:
                 if n == 2:
@@ -136,7 +136,7 @@ def parseGT(root, text, ignoreElems):
                 else:
                     parseGT(child, text, ignoreElems)
                 n = n + 1
-        elif root.tag[index:] == 'msup':
+        elif root.tag[index:] == 'msup' or root.tag[index:] == 'mover':
             n = 1
             for child in root:
                 if n == 2:
@@ -150,7 +150,7 @@ def parseGT(root, text, ignoreElems):
                 else:
                     parseGT(child, text, ignoreElems)
                 n = n + 1
-        elif root.tag[index:] == 'msubsup':
+        elif root.tag[index:] == 'msubsup' or root.tag[index:] == 'munderover':
             n = 1
             for child in root:
                 if n == 2:
@@ -172,13 +172,15 @@ def parseGT(root, text, ignoreElems):
                 else:
                     parseGT(child, text, ignoreElems)
                 n = n + 1
-                    
+#        elif root.tag[index:] == 'munder':
+            
         else:
             for child in root:
                 parseGT(child, text, ignoreElems)
            
 def makeOneshotGT(path_to_ink, path_to_symbol):
     word_to_id, id_to_word = buildVocab(path_to_symbol)
+    print(id_to_word)
 #    chuan hoa text de tach ra duoc tung symbol va luu thanh mang trong data
 #    TODO
 #    data = ['\\forall', 'g', '\\in', 'G'] 
@@ -212,7 +214,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
     
     for i in range(need_to_pad):
         text.append('$P')
-    print ('gt', text)
+    print ('gt', len(text))
     
     vector = replaceW2ID(text, word_to_id)
     #print('vector', vector)
@@ -292,7 +294,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
-makeOneshotGT('./../data/CROHME/test/formulaire004-equation024.inkml','./mathsymbolclass.txt')
+makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
 
 
 #makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')

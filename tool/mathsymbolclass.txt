@@ -83,7 +83,7 @@ Y
 \tan
 \ldots
 \geq
-\rigtharrow
+\rightarrow
 \lim
 \int
 !
