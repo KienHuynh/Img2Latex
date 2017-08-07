@@ -41,12 +41,13 @@ class Loader:
 		return numpy.load(path)
 
 
-	def generateTensorDatasetFromCROHMEBinary(self, pathtrain, pathtest):
-		train_set = numpy.load(pathtrain)
-		test_set = numpy.load(pathtrain)
+	def generateTensorDatasetFromCROHMEBinary(self, pathtrain_data, pathtrain_target, pathtest_data, pathtest_target):
+		train_set = numpy.load(pathtrain_data)
+		test_set = numpy.load(pathtest_data)
 
-		train_target = numpy.ones(len(train_set))
+		train_target = numpy.load(pathtrain_target)
 		test_target = numpy.ones(len(test_set))
+		
 		
 		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
 		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))

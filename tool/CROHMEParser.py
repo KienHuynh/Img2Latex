@@ -5,6 +5,16 @@ import os
 from os import walk
 import getGT
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.autograd import Variable
+import numpy
+import struct
+import cv2
+
 ##########################################################
 ## parameter:
 ## input_path: path to inkml file
@@ -571,10 +581,12 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 
 	for (dirpath, dirnames, filenames) in walk(input_path):
 		for file in filenames:
-			print (file)
 			temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
-			temp_GT = getGT.makeGTVector(input_path + file, './mathsymbolclass.txt')
-
+			temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
+			
+			print (file)
+			print (len(temp_GT))
+			
 			if len(temp_result) == 0:
 				print ('unable to parse ' + file)
 			else:
@@ -589,6 +601,15 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 
 	np.save(real_output_path_Target, GTResult)
 	np.save(real_output_path_Data, ParseResult)
+	
+	#tempppp1 = np.load(real_output_path_Data + '.npy')
+	#tempppp2 = np.load(real_output_path_Target + '.npy')
+	#
+	#print (tempppp1.shape)
+	#print (tempppp2)
+	#print (numpy.asarray(tempppp2).shape)
+	#Tensor_train = torch.utils.data.TensorDataset(torch.from_numpy(tempppp1), torch.from_numpy(tempppp2.astype(numpy.long)))
+
 
 def sizeStatistic(input_path, scalefactor = 1):
 

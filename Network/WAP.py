@@ -3,9 +3,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
+
 from torch.autograd import Variable
 import numpy
+
+import NetWorkConfig
 
 class WAP(nn.Module):
 	def __init__(self):
@@ -38,7 +40,6 @@ class WAP(nn.Module):
 
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
-		self.conv_temp = nn.Conv2d(128, 128, 3, stride=1,padding=1)
 
 		###############################################
 		########### ATTENTION #########################
@@ -50,17 +51,14 @@ class WAP(nn.Module):
 		###############################################
 
 		#Outputs: output, h_n
-		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+		self.gru = nn.GRU(input_size  = 128, hidden_size  = NetWorkConfig.NUM_OF_TOKEN)
 
-		self.Coverage_MLP_From_H = nn.Linear(128, 1)
+		self.Coverage_MLP_From_H = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 1)
 		self.Coverage_MLP_From_A = nn.Linear(128, 1)
 
-		self.fc2 = nn.Linear(50, 10)
-
-		self.max_output_len  = 20
+		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
 
 
-		self.lstm = nn.LSTM(input_size=128, hidden_size=128, num_layers=1)
 
 	def setWordMaxLen(self, max_len):
 		self.max_output_len = max_len
@@ -95,7 +93,7 @@ class WAP(nn.Module):
 
 		FCN_Result = F.relu(self.pool_4(x))
 
-		print (FCN_Result.data.numpy().shape)
+		#print (FCN_Result.data.numpy().shape)
 		################### END FCN ##########################
 
 		current_tensor_shape = FCN_Result.data.numpy().shape
@@ -105,7 +103,7 @@ class WAP(nn.Module):
 		GRU_hidden = None
 
 		# remember to fix dim//// symbol x index // And assign Starting
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, 128).zero_(), requires_grad=True)
+		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
 
 		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 

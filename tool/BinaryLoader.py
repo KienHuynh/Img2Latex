@@ -8,11 +8,11 @@ import numpy as np
 def readBinaryFile(path):
 	loaded_data = np.load(path)
 	print (loaded_data.shape)
-	#cv2.imshow('im', loaded_data[5][0])
-	#cv2.waitKey(0)
+	cv2.imshow('im', loaded_data[5][0])
+	cv2.waitKey(0)
 
 	
 
 	pass
 
-readBinaryFile('./../data/CROHME/Binary/CROHMEBLOCK.npy')
+readBinaryFile('./../data/CROHME/Binary/CROHMEBLOCK_Data.npy')

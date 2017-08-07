@@ -90,29 +90,11 @@ def getIndex(root):
     return index
 
     
-def ParseGTFromfile(root, text, ignoreElems):
-    text.append('$B')
-    parseGT(root, text, ignoreElems)
-    text.append('$E')
-
-    need_to_pad = NetWorkConfig.MAX_TOKEN_LEN - len(text)
-    if need_to_pad < 0:
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('WARNING WARNING WARNING WARNING')
-        print ('Ground truth size exceed MAX_TOKEN_LEN')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        print ('-------------------------------------------------------------------------------')
-        quit()
-
-    for i in range(need_to_pad):
-        text.append('$P')
+#def ParseGTFromfile(root, text, ignoreElems):
+#    text.append('$B')
+#    parseGT(root, text, ignoreElems)
+#    text.append('$E')
+#    
 
 def parseGT(root, text, ignoreElems):
     index = getIndex(root)
@@ -200,19 +182,37 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 #    chuan hoa text de tach ra duoc tung symbol va luu thanh mang trong data
 #    TODO
 #    data = ['\\forall', 'g', '\\in', 'G'] 
-    #print(touchGT(path_to_ink))
+    print(touchGT(path_to_ink))
     root = getRoot(path_to_ink)
     ignoreElems = ['traceFormat','annotation','trace','traceGroup']
-    text = []
+    text = ['<s>']
     
     #--------- PTP Fix : Add Start/ End and padding token
     ##################################
     #parseGT(root, text, ignoreElems)#
     ##################################
-    ParseGTFromfile(root, text, ignoreElems)
-
-
-    #print ('gt', text)
+    parseGT(root, text, ignoreElems)
+    text.append('</s>')
+    need_to_pad = NetWorkConfig.MAX_TOKEN_LEN - len(text)
+    
+    if need_to_pad < 0:
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('WARNING WARNING WARNING WARNING')
+        print ('Ground truth size exceed MAX_TOKEN_LEN')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        print ('-------------------------------------------------------------------------------')
+        quit()
+    
+    for i in range(need_to_pad):
+        text.append('$P')
+    print ('gt', text)
     
     vector = replaceW2ID(text, word_to_id)
     #print('vector', vector)
@@ -221,17 +221,38 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 
 
     tensor = torch.LongTensor(vector)
-    #print('vector',Variable(tensor))
+    print('vector',Variable(tensor))
     return Variable(tensor)
 
-def makeGTVector(path_to_ink, path_to_symbol):
-    word_to_id, id_to_word = buildVocab(path_to_symbol)
-    root = getRoot(path_to_ink)
-    ignoreElems = ['traceFormat','annotation','trace','traceGroup']
-    text = []
-    ParseGTFromfile(root, text, ignoreElems)
-    vector = replaceW2ID(text, word_to_id)
-    return vector
+#def makeGTVector(path_to_ink, path_to_symbol):
+#    word_to_id, id_to_word = buildVocab(path_to_symbol)
+#    root = getRoot(path_to_ink)
+#    ignoreElems = ['traceFormat','annotation','trace','traceGroup']
+#    text = []
+#    ParseGTFromfile(root, text, ignoreElems)
+#    vector = replaceW2ID(text, word_to_id)
+#   
+#    need_to_pad = NetWorkConfig.MAX_TOKEN_LEN - len(vector)
+#   
+#    if need_to_pad < 0:
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('WARNING WARNING WARNING WARNING')
+#        print ('Ground truth size exceed MAX_TOKEN_LEN')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        print ('-------------------------------------------------------------------------------')
+#        quit()
+#   
+#    for i in range(need_to_pad):
+#        vector.append(word_to_id['$P'])
+#   
+#    return vector
 
 ##   tach symbol             
 #def oneshotGT(path_to_ink, path_to_symbol):
@@ -271,7 +292,7 @@ def makeGTVector(path_to_ink, path_to_symbol):
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
-#makeOneshotGT('./../data/CROHME/test/formulaire038-equation013.inkml','./mathsymbolclass.txt')
+makeOneshotGT('./../data/CROHME/test/formulaire004-equation024.inkml','./mathsymbolclass.txt')
 
 
 #makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')

@@ -91,7 +91,7 @@ Y
 }
 [
 ]
-\frac
+/
 ,
 .
 \exists
@@ -99,6 +99,9 @@ Y
 \in
 \prime
 |
-$B
-$E
+\frac
+_
+^
+<s>
+</s>
 $P

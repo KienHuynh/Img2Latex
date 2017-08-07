@@ -19,7 +19,8 @@ cuda_avail = torch.cuda.is_available()
 
 loader = DL.Loader()
 #train, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
-train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK.npy', '../data/CROHME/Binary/CROHMEBLOCK.npy')
+train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
+
 
 train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
