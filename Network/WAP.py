@@ -58,6 +58,8 @@ class WAP(nn.Module):
 		self.Coverage_MLP_From_H = nn.Linear(128, 1)
 		self.Coverage_MLP_From_A = nn.Linear(128, 1)
 
+		self.alpha_softmax = torch.nn.Softmax()
+
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
 
 
@@ -156,7 +158,10 @@ class WAP(nn.Module):
 						alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
 
 						#print(alpha_mat.data.numpy().shape)
-						
+				
+			alpha_mat = F.tanh(alpha_mat)
+			#print (alpha_mat.data.numpy().shape)	
+
 		#print (return_tensor.data.numpy().shape)	
 
 		return torch.unsqueeze(return_tensor, dim = 1)
