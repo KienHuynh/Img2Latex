@@ -217,16 +217,55 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
     #print ('gt', len(text))
     
     vector = replaceW2ID(text, word_to_id)
-    #print('vector', vector)
+    print('vector', vector)
     
     #print (vector)
-
-    return vector
-
     #tensor = torch.LongTensor(vector)
     #print('vector',Variable(tensor))
     #return Variable(tensor)
+    return vector
 
+
+def prepareTarget(vector, vocab_size):
+    raw_data = np.array(vector, dtype = np.int32)
+#    tensor = torch.IntTensor(vector)
+#    print(Variable(tensor))
+    print(raw_data)
+    print(raw_data.shape)
+    data = np.zeros([len(vector), vocab_size], dtype=np.int32)
+    print(data.shape)
+    for i in range(len(vector)):
+        col_index = vector[i] - 1
+        print(col_index)
+        data[i, col_index] = 1
+#        inputs=Variable(torch.from_numpy(data[i].astype(np.int64)).contiguous())
+        
+    print(data)
+    return data
+    
+def ptb_iterator(raw_data, batch_size, num_steps):
+ 
+  raw_data = np.array(raw_data, dtype=np.int32)
+
+  data_len = len(raw_data)
+  batch_len = data_len // batch_size
+  data = np.zeros([batch_size, batch_len], dtype=np.int32)
+  for i in range(batch_size):
+    data[i] = raw_data[batch_len * i:batch_len * (i + 1)]
+
+
+  epoch_size = (batch_len - 1) // num_steps
+
+  if epoch_size == 0:
+    raise ValueError("epoch_size == 0, decrease batch_size or num_steps")
+
+  for i in range(epoch_size):
+    x = data[:, i*num_steps:(i+1)*num_steps]
+    print('x',x)
+    y = data[:, i*num_steps+1:(i+1)*num_steps+1]
+    inputs = Variable(torch.from_numpy(x.astype(np.int64)).transpose(0,1).contiguous())
+    Variable(torch.from_numpy(y.astype(np.int64)).transpose(0,1).contiguous())
+    print('input',inputs)
 #def makeGTVector(path_to_ink, path_to_symbol):
 #    word_to_id, id_to_word = buildVocab(path_to_symbol)
 #    root = getRoot(path_to_ink)
@@ -295,9 +334,9 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
-#makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
-
-
+vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
+prepareTarget(vector, 107)
+#ptb_iterator(vector, 4, 1)
 #makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./200922-947-1.inkml', './mathsymbolclass.txt')
 #buildVocab('./mathsymbolclass.txt')
