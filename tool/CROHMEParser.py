@@ -434,115 +434,110 @@ def parseOfficialV_2(input_path, scale_factor = 1, target_width = 512, target_he
 
 ######################################## to python 3.6
 def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_height = 256, padding = 20):
+    
 	#################################
 	##### GET XML FILE ##############
 	#################################
 	#print 'processing ' + input_path
-
-	try:
-
-		try:
-			root = xml.etree.ElementTree.parse(input_path).getroot()
-		except:
-			print ('error parsing')
-			return
-		tag_header_len = len(root.tag) - 3
-
-		vertex_arr = []
-
-		min_x = 999999
-		min_y = 999999
-
-		max_x = 0
-		max_y = 0
-
-		for child in root:
-			tag = child.tag[tag_header_len:]
+    try:
+        try:
+            root = xml.etree.ElementTree.parse(input_path).getroot()
+        except:
+            print ('error parsing')
+            return
+        tag_header_len = len(root.tag) - 3
+        vertex_arr = []
+        min_x = 999999
+        min_y = 999999
+        max_x = 0
+        max_y = 0
+        for child in root:
+            tag = child.tag[tag_header_len:]
 			################################
 			####### GET VERTICES ###########
 			################################
-			if tag == 'trace':
-				temp_arr = []
-				processing_text = child.text
-
-				try:
-					test_str = processing_text[:processing_text.index(',')]
-					test_str = test_str.strip()
-					test_str = test_str.split(' ')
-					vertexlen = len(test_str)
-				except:
-					vertexlen = 2
-
-				processing_text = processing_text.replace(',', '')
-				processing_text = processing_text.replace('\n', '')
-				raw_vertex_list = processing_text.split(' ')
-				
-				
-				for i in range(int(len(raw_vertex_list) / vertexlen)):
-					x = float(raw_vertex_list[vertexlen * i])
-					y = float(raw_vertex_list[vertexlen * i + 1])
-
-					if x > max_x:
-						max_x = x
-					if y > max_y:
-						max_y = y
-					if x < min_x:
-						min_x = x
-					if y < min_y:
-						min_y = y
-
-					temp_arr.append ((x, y))
-				
-				vertex_arr.append(temp_arr)
+            if tag == 'trace':
+                temp_arr = []
+                processing_text = child.text
+                try:
+                    test_str = processing_text[:processing_text.index(',')]
+                    test_str = test_str.strip()
+                    test_str = test_str.split(' ')
+                    vertexlen = len(test_str)
+                except:
+                    vertexlen = 2
+                processing_text = processing_text.replace(',', '')
+                processing_text = processing_text.replace('\n', '')
+                raw_vertex_list = processing_text.split(' ')
+                for i in range(int(len(raw_vertex_list) / vertexlen)):
+                    x = float(raw_vertex_list[vertexlen * i])
+                    y = float(raw_vertex_list[vertexlen * i + 1])
+                    if x > max_x:
+                        max_x = x
+                    if y > max_y:
+                        max_y = y
+                    if x < min_x:
+                        min_x = x
+                    if y < min_y:
+                        min_y = y
+                    temp_arr.append ((x, y))
+                    vertex_arr.append(temp_arr)
 				
 		#################################
 		##### GENERATE ##################
 		#################################
-
-		output = np.zeros((target_height, target_width))
-
-		width = max_x - min_x
-		heigh = max_y - min_y
-
-		evaluate_width = width * scale_factor
-		evaluate_heigh = heigh * scale_factor
-
-		if evaluate_width > (target_width - padding):
-			scale_factor = scale_factor * (target_width - padding) / float(evaluate_width)
-
-		if evaluate_heigh > (target_height - padding):
-			scale_factor = scale_factor * (target_height - padding) / float(evaluate_heigh)
-
-		expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
-
-		for stroke in vertex_arr:
-
-			temp_vertex_arr = []
-
-			for vertex in stroke:
-				temp_vertex_arr.append((int((vertex[0] - min_x) * scale_factor ), int((vertex[1] - min_y) * scale_factor)))
-				
-			for i in range (len(stroke) - 1):
-				cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], 255, 1)
+        output = np.zeros((target_height, target_width))
+        width = max_x - min_x
+        heigh = max_y - min_y
+        evaluate_width = width * scale_factor
+        evaluate_heigh = heigh * scale_factor
+        if evaluate_width > (target_width - padding):
+            scale_factor = scale_factor * (target_width - padding) / float(evaluate_width)
+        
+        if evaluate_heigh > (target_height - padding):
+            scale_factor = scale_factor * (target_height - padding) / float(evaluate_heigh)
+        
+        expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
+        
+        for stroke in vertex_arr:
+            temp_vertex_arr = []
+            for vertex in stroke:
+                temp_vertex_arr.append((int((vertex[0] - min_x) * scale_factor ), int((vertex[1] - min_y) * scale_factor)))
+            for i in range (len(stroke) - 1):
+                cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], 255, 1)
 
 		#################################
 		##### PADDING ###################
 		#################################
-			
-		y_offset = int((target_height - expr_img.shape[0]) / 2)
-		x_offset = int((target_width - expr_img.shape[1]) / 2)
-
-		output[y_offset:y_offset + expr_img.shape[0], x_offset:x_offset + expr_img.shape[1]] = expr_img
-
-		#cv2.imshow("big", output); Image Window will be clipped if its size is bigger than screen's size!
-		#cv2.waitKey();
+        y_offset = int((target_height - expr_img.shape[0]) / 2)
+        x_offset = int((target_width - expr_img.shape[1]) / 2)
+        
+        output[y_offset:y_offset + expr_img.shape[0], x_offset:x_offset + expr_img.shape[1]] = expr_img
+        
+#        cv2.imshow("big3", output); #Image Window will be clipped if its size is bigger than screen's size!
+#        cv2.waitKey();
 		#cv2.imwrite(output_path, output)
-		
-		return [output]
-	except NotImplementedError as e:
-		print (e)
-		print ('error parse ' + input_path)
-		return np.array([])
+        print('dacoanh')
+        eight_imgs = []
+        for theta in np.arange(0,2*np.pi, np.pi / 4):
+            
+            kernel = cv2.getGaborKernel((21,21), 8.0, theta, 10.0, 0.5, 0, cv2.CV_32F)
+#            print('kernel', kernel)
+            filtered_img = cv2.filter2D(output, cv2.CV_8UC3, kernel)
+#            cv2.imshow('filtered image', filtered_img)
+#            cv2.waitKey();
+#            break 
+#            print('fitered_img', filtered_img)
+            eight_imgs.append(filtered_img)
+        eight_imgs.append(output) 
+        
+#        print('type', eight_imgs)
+#            cv2.getGaborKernel(ksize, sigma, theta, lambd, gamma, psi, ktype)
+        return eight_imgs
+    except NotImplementedError as e:
+        print (e)
+        print ('error parse ' + input_path)
+        return np.array([])
 
 def ParseFolder(input_path, scale_factor = 1, output_path = './', format_ = 'jpg', verlen = 2, padding = 20):
 	try:
@@ -726,12 +721,12 @@ def sizeStatistic(input_path, scalefactor = 1):
 
 	f.close()		
 
-#parseOfficialV_1('./TrainINKML/TrainINKML/expressmatch/101_fujita.inkml', 'img.jpg')
+parseOfficialV_3('./../data/TrainINKML/expressmatch/101_fujita.inkml')
 #parseFileSpecial('./TrainINKML/TrainINKML/MfrDB/MfrDB0104.inkml', 'img.jpg')
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
-ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
+#ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 
