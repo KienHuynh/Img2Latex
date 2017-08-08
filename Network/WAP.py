@@ -8,6 +8,7 @@ from torch.autograd import Variable
 import numpy
 
 import NetWorkConfig
+import getGT
 
 class WAP(nn.Module):
 	def __init__(self):
@@ -55,6 +56,7 @@ class WAP(nn.Module):
 		self.grucell = nn.GRUCell(128, 128)
 		self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
 
+		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
 
 		self.Coverage_MLP_From_H = nn.Linear(128, 1)
 		self.Coverage_MLP_From_A = nn.Linear(128, 1)
@@ -63,7 +65,8 @@ class WAP(nn.Module):
 
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
 
-
+	def setGroundTruth(self, GT):
+		self.GT = GT
 
 	def setWordMaxLen(self, max_len):
 		self.max_output_len = max_len
@@ -111,6 +114,11 @@ class WAP(nn.Module):
 		# remember to fix dim//// symbol x index // And assign Starting
 		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
 
+		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
+
+		last_y = torch.squeeze(return_tensor, dim = 1)
+
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 
 		for RNN_iterate in range (self.max_output_len - 1):
@@ -126,11 +134,13 @@ class WAP(nn.Module):
 
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 
-			GRU_hidden = self.grucell(multiplied_mat, GRU_hidden)
+			from_last_output = self.Out_to_hidden_GRU(last_y)
+
+			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
 			#print (GRU_output.data.numpy().shape)
 
 			GRU_output = self.post_gru(GRU_hidden)
-			
+			last_y = GRU_output
 
 			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 

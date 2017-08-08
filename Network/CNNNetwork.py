@@ -77,6 +77,8 @@ class TestingNetwork:
 			self.optimizer.zero_grad()
 			output = self.model(data)
 
+			break
+
 			target = target.view(100)
 			output = output.view(100, NetWorkConfig.NUM_OF_TOKEN)
 			loss = self.NLLloss1(output, target)
