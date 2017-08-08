@@ -217,7 +217,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
     #print ('gt', len(text))
     
     vector = replaceW2ID(text, word_to_id)
-    print('vector', vector)
+    #print('vector', vector)
     
     #print (vector)
     #tensor = torch.LongTensor(vector)
@@ -226,22 +226,26 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
     return vector
 
 
-def prepareTarget(vector, vocab_size):
+def prepareTarget(vector, vocab_size = -1):
+    if vocab_size == -1:
+        vocab_size = NetWorkConfig.NUM_OF_TOKEN
+
     raw_data = np.array(vector, dtype = np.int32)
 #    tensor = torch.IntTensor(vector)
 #    print(Variable(tensor))
-    print(raw_data)
-    print(raw_data.shape)
+    #print(raw_data)
+    #print(raw_data.shape)
     data = np.zeros([len(vector), vocab_size], dtype=np.int32)
-    print(data.shape)
+    #print(data.shape)
     for i in range(len(vector)):
         col_index = vector[i] - 1
-        print(col_index)
+        #print(col_index)
         data[i, col_index] = 1
 #        inputs=Variable(torch.from_numpy(data[i].astype(np.int64)).contiguous())
         
-    print(data)
+    #print(data)
     return data
+    #return np.array([data])
     
 def ptb_iterator(raw_data, batch_size, num_steps):
  
@@ -334,8 +338,11 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
-vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
-prepareTarget(vector, 107)
+#vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
+#dataout = prepareTarget(vector)
+
+#print (dataout.shape)
+
 #ptb_iterator(vector, 4, 1)
 #makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./200922-947-1.inkml', './mathsymbolclass.txt')

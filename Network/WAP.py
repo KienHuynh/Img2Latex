@@ -121,11 +121,11 @@ class WAP(nn.Module):
 
 			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
-			multiplied_mat = torch.squeeze(multiplied_mat, 2)
-			multiplied_mat = torch.squeeze(multiplied_mat, 2)
-			multiplied_mat = multiplied_mat.view(-1, 128)
 
-			multiplied_mat = torch.unsqueeze(multiplied_mat, dim = 1)
+			multiplied_mat = multiplied_mat.view(1, 1, 128)
+
+
+
 
 			#print (multiplied_mat.data.numpy().shape)
 			
@@ -160,9 +160,10 @@ class WAP(nn.Module):
 						#print(alpha_mat.data.numpy().shape)
 				
 			alpha_mat = F.tanh(alpha_mat)
-			#print (alpha_mat.data.numpy().shape)	
+			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
 
 		#print (return_tensor.data.numpy().shape)	
 
-		return torch.unsqueeze(return_tensor, dim = 1)
+		#return torch.unsqueeze(return_tensor, dim = 1)
+		return return_tensor
 

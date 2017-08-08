@@ -54,6 +54,8 @@ class TestingNetwork:
 		
 		self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 
+		self.NLLloss = nn.NLLLoss2d()
+
 	def setCudaState(self, state = True):
 		self.using_cuda = state
 
@@ -76,12 +78,18 @@ class TestingNetwork:
 
 			#print (type(output))
 			
+			#target = torch.unsqueeze(target, dim = 1)
+
 			print (output.data.numpy().shape)
 			print (target.data.numpy().shape)
+
+			#loss = F.nll_loss(output, target)
+			
+			loss = self.NLLloss(output, target)
+
 			break
 
-			loss = F.nll_loss(output, torch.unsqueeze(target, dim = 1))
-			
+
 			loss.backward()
 			self.optimizer.step()
 

@@ -582,8 +582,8 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 	for (dirpath, dirnames, filenames) in walk(input_path):
 		for file in filenames:
 			temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
-			temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
-			
+			temp_GT = getGT.prepareTarget(getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt'))
+
 			print (file)
 			#print (len(temp_GT))
 			
