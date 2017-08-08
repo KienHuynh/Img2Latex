@@ -9,6 +9,8 @@ import numpy
 
 import WAP
 
+import NetWorkConfig
+
 class Net(nn.Module):
 	def __init__(self):
 		super(Net, self).__init__()
@@ -70,18 +72,24 @@ class TestingNetwork:
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
 
-			data, target = Variable(data.float()), Variable(target.long())
+			data, target = Variable(data.float()), Variable(target.long().transpose(0,1))
 			self.optimizer.zero_grad()
 			output = self.model(data)
 
+			
 
+			output = output.view(NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+			
+			target = target.view(50)
 
 			#print (type(output))
-			
+			print (target.data)
+			print (target.data.numpy().shape)
 			#target = torch.unsqueeze(target, dim = 1)
 
 			print (output.data.numpy().shape)
-			print (target.data.numpy().shape)
+			
+			
 
 			#loss = F.nll_loss(output, target)
 			
