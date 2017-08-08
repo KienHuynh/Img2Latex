@@ -129,7 +129,9 @@ class WAP(nn.Module):
 
 			#print (multiplied_mat.data.numpy().shape)
 			
+
 			GRU_output, GRU_hidden = self.gru(multiplied_mat, GRU_hidden)
+			#print (GRU_output.data.numpy().shape)
 
 			GRU_output = self.post_gru(torch.squeeze(GRU_output, dim = 1))
 			GRU_output = torch.unsqueeze(GRU_output, dim = 1)

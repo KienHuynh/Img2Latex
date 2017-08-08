@@ -610,6 +610,50 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 	#print (numpy.asarray(tempppp2).shape)
 	#Tensor_train = torch.utils.data.TensorDataset(torch.from_numpy(tempppp1), torch.from_numpy(tempppp2.astype(numpy.long)))
 
+def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verlen = 2, padding = 20):
+	try:
+		os.mkdir(output_path + 'ParseResult/')
+	except:
+		pass
+
+	count = 0
+
+	ParseResult = []
+	GTResult = []
+	real_output_path_Data = output_path + 'ParseResult/' + 'CROHMEBLOCK_Data'
+	real_output_path_Target = output_path + 'ParseResult/' + 'CROHMEBLOCK_Target'
+
+	for (dirpath, dirnames, filenames) in walk(input_path):
+		for file in filenames:
+			temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
+			temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
+
+			print (file)
+			#print (len(temp_GT))
+			
+			if len(temp_result) == 0:
+				print ('unable to parse ' + file)
+			else:
+				ParseResult.append(temp_result)
+				GTResult.append(temp_GT)
+
+			count = count + 1
+			if count == 100:
+				break
+
+		break
+
+	np.save(real_output_path_Target, GTResult)
+	np.save(real_output_path_Data, ParseResult)
+	
+	#tempppp1 = np.load(real_output_path_Data + '.npy')
+	#tempppp2 = np.load(real_output_path_Target + '.npy')
+	#
+	#print (tempppp1.shape)
+	#print (tempppp2)
+	#print (numpy.asarray(tempppp2).shape)
+	#Tensor_train = torch.utils.data.TensorDataset(torch.from_numpy(tempppp1), torch.from_numpy(tempppp2.astype(numpy.long)))
+
 
 def sizeStatistic(input_path, scalefactor = 1):
 
@@ -687,7 +731,7 @@ def sizeStatistic(input_path, scalefactor = 1):
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
-ParseFolderToBinary('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
+ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 

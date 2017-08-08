@@ -341,6 +341,9 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
 #dataout = prepareTarget(vector)
 
+#print (vector)
+
+#print (dataout)
 #print (dataout.shape)
 
 #ptb_iterator(vector, 4, 1)
