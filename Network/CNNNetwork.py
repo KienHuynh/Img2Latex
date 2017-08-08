@@ -57,6 +57,7 @@ class TestingNetwork:
 		self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 
 		self.NLLloss = nn.NLLLoss2d()
+		self.NLLloss1 = nn.NLLLoss()
 
 	def setCudaState(self, state = True):
 		self.using_cuda = state
@@ -72,30 +73,28 @@ class TestingNetwork:
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
 
-			data, target = Variable(data.float()), Variable(target.long().transpose(0,1))
+			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
 
+			target = target.view(100)
+			output = output.view(100, NetWorkConfig.NUM_OF_TOKEN)
+			loss = self.NLLloss1(output, target)
 			
-
-			output = output.view(NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
 			
-			target = target.view(50)
+			print (target)
+			print (output.data.numpy().shape)
 
 			#print (type(output))
-			print (target.data)
-			print (target.data.numpy().shape)
-			#target = torch.unsqueeze(target, dim = 1)
-
-			print (output.data.numpy().shape)
+			
 			
 			
 
 			#loss = F.nll_loss(output, target)
 			
-			loss = self.NLLloss(output, target)
+			
 
-			break
+			
 
 
 			loss.backward()
@@ -106,6 +105,8 @@ class TestingNetwork:
 				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 					epoch, batch_idx * len(data), len(self.train_loader.dataset),
 					100. * batch_idx / len(self.train_loader), loss.data[0]))
+					
+			break
 
 
 	def test(self):

@@ -1,1 +1,7 @@
 /Network/__pycache__/*.pyc
+speech_tag.py
+testRNN.py
+__pycache__
+main.py
+myLSTM.py
+sequence_models_tutorial.py

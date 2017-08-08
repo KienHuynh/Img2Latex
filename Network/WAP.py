@@ -52,6 +52,7 @@ class WAP(nn.Module):
 
 		#Outputs: output, h_n
 		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+		self.grucell = nn.GRUCell(128, 128)
 		self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
 
 
@@ -104,7 +105,8 @@ class WAP(nn.Module):
 
 
 		################### START GRU ########################
-		GRU_hidden = None
+		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
+		GRU_hidden = Variable(torch.rand(current_tensor_shape[0], 128))
 
 		# remember to fix dim//// symbol x index // And assign Starting
 		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
@@ -122,22 +124,22 @@ class WAP(nn.Module):
 			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 
-			multiplied_mat = multiplied_mat.view(1, 1, 128)
+			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 
-
-
-
-			#print (multiplied_mat.data.numpy().shape)
-			
-
-			GRU_output, GRU_hidden = self.gru(multiplied_mat, GRU_hidden)
+			GRU_hidden = self.grucell(multiplied_mat, GRU_hidden)
 			#print (GRU_output.data.numpy().shape)
 
-			GRU_output = self.post_gru(torch.squeeze(GRU_output, dim = 1))
+			GRU_output = self.post_gru(GRU_hidden)
+			
+
 			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 
+			
+			
 			return_tensor = torch.cat([return_tensor, F.log_softmax(GRU_output)], 1)
 
+			
+			
 			#print (GRU_hidden.data.numpy().shape)
 
 			##########################################################
@@ -146,8 +148,12 @@ class WAP(nn.Module):
 
 
 			from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
+			
+			
+			
 			#from_a = self.Coverage_MLP_From_A(FCN_Result.data[batch_index,:,i,j])
 
+			
 
 			for batch_index in range(current_tensor_shape[0]):
 				for i in range(current_tensor_shape[2]):
@@ -155,15 +161,23 @@ class WAP(nn.Module):
 						pass
 						
 						temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
+						
+						
+						
 						from_a = self.Coverage_MLP_From_A(temp_tensor)
 
+						
+						
 						alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
 
 						#print(alpha_mat.data.numpy().shape)
 				
+			
+				
 			alpha_mat = F.tanh(alpha_mat)
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
 
+			
 		#print (return_tensor.data.numpy().shape)	
 
 		#return torch.unsqueeze(return_tensor, dim = 1)
