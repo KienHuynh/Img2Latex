@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import matplotlib.pyplot as plt
 #
 # Use python 3.x
 #
@@ -8,8 +8,12 @@ import numpy as np
 def readBinaryFile(path):
 	loaded_data = np.load(path)
 	print (loaded_data.shape)
-	cv2.imshow('im', loaded_data[5][0])
-	cv2.waitKey(0)
+	print (loaded_data.dtype)
+	plt.imshow(loaded_data[5][7])
+	plt.show()
+	
+	#cv2.imshow('im', loaded_data[5][8])
+	#cv2.waitKey(0)
 
 	
 

@@ -517,7 +517,7 @@ def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_he
 #        cv2.imshow("big3", output); #Image Window will be clipped if its size is bigger than screen's size!
 #        cv2.waitKey();
 		#cv2.imwrite(output_path, output)
-        print('dacoanh')
+        #print('dacoanh')
         eight_imgs = []
         for theta in np.arange(0,2*np.pi, np.pi / 4):
             
@@ -633,7 +633,7 @@ def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verle
 				GTResult.append(temp_GT)
 
 			count = count + 1
-			if count == 100:
+			if count == 1:
 				break
 
 		break
@@ -721,12 +721,12 @@ def sizeStatistic(input_path, scalefactor = 1):
 
 	f.close()		
 
-parseOfficialV_3('./../data/TrainINKML/expressmatch/101_fujita.inkml')
+#parseOfficialV_3('./../data/TrainINKML/expressmatch/101_fujita.inkml')
 #parseFileSpecial('./TrainINKML/TrainINKML/MfrDB/MfrDB0104.inkml', 'img.jpg')
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
-#ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
+ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 
