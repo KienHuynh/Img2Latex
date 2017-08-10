@@ -33,7 +33,7 @@ def buildVocab(path):
     words, _ = list(zip(*count_pairs))
     word_to_id = dict(zip(words, range(len(words))))
     id_to_word = dict((v, k) for k, v in word_to_id.items())
-#    print(word_to_id)
+    print(len(word_to_id))
 #    print(id_to_word)
 #    train = _file_to_word_ids(truth, word_to_id)
 #    print(train)

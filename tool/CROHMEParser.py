@@ -621,10 +621,10 @@ def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verle
     for (dirpath, dirnames, filenames) in walk(input_path):
         for file in filenames:
             temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
-#            temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
             temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
+#            temp_GT = getGT.buildVocab('./mathsymbolclass.txt')
             print (file)
-			#print (len(temp_GT))
+           
             if len(temp_result) == 0:
                 print ('unable to parse ' + file)
             else:
@@ -632,8 +632,8 @@ def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verle
                 GTResult.append(temp_GT)
                 
             count = count + 1
-            if count == 1:
-                break
+#            if count == 1:
+#                break
             
         break
     
