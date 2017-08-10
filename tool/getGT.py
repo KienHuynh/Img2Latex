@@ -334,7 +334,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
     
     
    
-#makeOneshotGT('./101_alfonso.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
