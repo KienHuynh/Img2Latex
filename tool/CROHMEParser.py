@@ -521,7 +521,7 @@ def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_he
         eight_imgs = []
         for theta in np.arange(0,2*np.pi, np.pi / 4):
             
-            kernel = cv2.getGaborKernel((21,21), 8.0, theta, 10.0, 0.5, 0, cv2.CV_32F)
+            kernel = cv2.getGaborKernel((30,30), 3.0, theta, 5.0, 0.5, 0, cv2.CV_32F)
 #            print('kernel', kernel)
             filtered_img = cv2.filter2D(output, cv2.CV_8UC3, kernel)
 #            cv2.imshow('filtered image', filtered_img)
