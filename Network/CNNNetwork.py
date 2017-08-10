@@ -6,11 +6,12 @@ import torch.optim as optim
 
 from torch.autograd import Variable
 import numpy
+numpy.set_printoptions(threshold=10000)
 
 import WAP
 
 import NetWorkConfig
-
+import pdb
 class Net(nn.Module):
 	def __init__(self):
 		super(Net, self).__init__()
@@ -77,13 +78,26 @@ class TestingNetwork:
 			self.optimizer.zero_grad()
 			output = self.model(data)
 
+			
+
 			target = target.view(100)
 			output = output.view(100, NetWorkConfig.NUM_OF_TOKEN)
+			
+			#print (output.data.numpy().)
+			
 			loss = self.NLLloss1(output, target)
 			
+			tt = target.data.numpy()
+			oo = output.data.numpy()
+
+			o2 = [oo[i, tt[i]] for i in range(0,100)]
 			
-			print (target)
-			print (output.data.numpy().shape)
+			pdb.set_trace()
+
+			#print (target)
+			#print (output.data.numpy().shape)
+			#print (output.data.numpy())
+
 
 			#print (type(output))
 			
