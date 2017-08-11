@@ -77,14 +77,14 @@ class TestingNetwork:
             data, target = Variable(data.float()), Variable(target.long())
             self.optimizer.zero_grad()
             output = self.model(data)
-            
-            target = target.view(100)
-            output = output.view(100, NetWorkConfig.NUM_OF_TOKEN)
+            print(output)
+            target = target.view(NetWorkConfig.BATCH_SIZE * 50)
+            output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
 			
 			#print (output.data.numpy().)
-#            criterion = nn.CrossEntropyLoss()
-#            loss = criterion(output, target)
-            loss = self.NLLloss1(output, target)
+            criterion = nn.CrossEntropyLoss()
+            loss = criterion(output, target)
+#            loss = self.NLLloss1(output, target)
             
             tt = target.data.numpy()
             oo = output.data.numpy()

@@ -172,10 +172,11 @@ class WAP(nn.Module):
 
 			# Apply softmax to prediction vector and concatenate to return_tensor
             GRU_output = torch.unsqueeze(GRU_output, dim = 1)
-            return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
+            return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+#            return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			#return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
             return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
-
+#            pdb.set_trace()
 			##########################################################
 			######### COVERAGE #######################################
 			##########################################################
