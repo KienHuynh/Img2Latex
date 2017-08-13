@@ -521,7 +521,7 @@ def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_he
         eight_imgs = []
         for theta in np.arange(0,2*np.pi, np.pi / 4):
             
-            kernel = cv2.getGaborKernel((21,21), 8.0, theta, 10.0, 0.5, 0, cv2.CV_32F)
+            kernel = cv2.getGaborKernel((30,30), 3.0, theta, 5.0, 0.5, 0, cv2.CV_32F)
 #            print('kernel', kernel)
             filtered_img = cv2.filter2D(output, cv2.CV_8UC3, kernel)
 #            cv2.imshow('filtered image', filtered_img)
@@ -606,40 +606,39 @@ def ParseFolderToBinary(input_path, scale_factor = 1, output_path = './', verlen
 	#Tensor_train = torch.utils.data.TensorDataset(torch.from_numpy(tempppp1), torch.from_numpy(tempppp2.astype(numpy.long)))
 
 def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verlen = 2, padding = 20):
-	try:
-		os.mkdir(output_path + 'ParseResult/')
-	except:
-		pass
-
-	count = 0
-
-	ParseResult = []
-	GTResult = []
-	real_output_path_Data = output_path + 'ParseResult/' + 'CROHMEBLOCK_Data'
-	real_output_path_Target = output_path + 'ParseResult/' + 'CROHMEBLOCK_Target'
-
-	for (dirpath, dirnames, filenames) in walk(input_path):
-		for file in filenames:
-			temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
-			temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
-
-			print (file)
-			#print (len(temp_GT))
-			
-			if len(temp_result) == 0:
-				print ('unable to parse ' + file)
-			else:
-				ParseResult.append(temp_result)
-				GTResult.append(temp_GT)
-
-			count = count + 1
-			if count == 1:
-				break
-
-		break
-
-	np.save(real_output_path_Target, GTResult)
-	np.save(real_output_path_Data, ParseResult)
+    try:
+        os.mkdir(output_path + 'ParseResult/')
+    except:
+        pass
+    
+    count = 0
+    
+    ParseResult = []
+    GTResult = []
+    real_output_path_Data = output_path + 'ParseResult/' + 'CROHMEBLOCK_Data'
+    real_output_path_Target = output_path + 'ParseResult/' + 'CROHMEBLOCK_Target'
+    
+    for (dirpath, dirnames, filenames) in walk(input_path):
+        for file in filenames:
+            temp_result = parseOfficialV_3(input_path + file, scale_factor, padding = padding)
+            temp_GT = getGT.makeOneshotGT(input_path + file, './mathsymbolclass.txt')
+#            temp_GT = getGT.buildVocab('./mathsymbolclass.txt')
+            print (file)
+           
+            if len(temp_result) == 0:
+                print ('unable to parse ' + file)
+            else:
+                ParseResult.append(temp_result)
+                GTResult.append(temp_GT)
+                
+            count = count + 1
+#            if count == 1:
+#                break
+            
+        break
+    
+    np.save(real_output_path_Target, GTResult)
+    np.save(real_output_path_Data, ParseResult)
 	
 	#tempppp1 = np.load(real_output_path_Data + '.npy')
 	#tempppp2 = np.load(real_output_path_Target + '.npy')
@@ -723,7 +722,7 @@ def sizeStatistic(input_path, scalefactor = 1):
 
 #parseOfficialV_3('./../data/TrainINKML/expressmatch/101_fujita.inkml')
 #parseFileSpecial('./TrainINKML/TrainINKML/MfrDB/MfrDB0104.inkml', 'img.jpg')
-#ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
+#ParseFolder('./../data/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
 ParseFolderToBinary2('./../data/CROHME/test/', 100, verlen = 2, output_path = './', padding = 50)

@@ -3,8 +3,8 @@ import torch
 
 import DatasetLoader as DL
 import CNNNetwork as testnetwork
-
-batch_size = 2
+import NetWorkConfig as NC
+batch_size = NC.BATCH_SIZE
 
 #############################################
 ######### TESTING HARDWARE ##################
