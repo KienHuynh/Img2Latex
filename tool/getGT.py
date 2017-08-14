@@ -34,11 +34,7 @@ def buildVocab(path):
     word_to_id = dict(zip(words, range(len(words))))
     id_to_word = dict((v, k) for k, v in word_to_id.items())
     print(len(word_to_id))
-<<<<<<< HEAD
-    print(id_to_word)
-=======
 #    print(id_to_word)
->>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 #    train = _file_to_word_ids(truth, word_to_id)
 #    print(train)
     return word_to_id, id_to_word
@@ -338,11 +334,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
     
     
    
-<<<<<<< HEAD
 makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
-=======
-#makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
->>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 
