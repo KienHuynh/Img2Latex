@@ -49,8 +49,8 @@ class Loader:
 		test_target = numpy.ones(len(test_set))
 		
 		
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
-		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.int64)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.int64)))
 
 		return Tensor_train, Tensor_test
 
@@ -60,7 +60,7 @@ class Loader:
 
 
 #loader = Loader()
-#loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK.npy', '../data/CROHME/Binary/CROHMEBLOCK.npy')
+#loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data_mini.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target_mini.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
 #trainn, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
 #train_loader = torch.utils.data.DataLoader(trainn, batch_size=100, shuffle=False)
 
