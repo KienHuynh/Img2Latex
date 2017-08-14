@@ -114,7 +114,6 @@ class WAP(nn.Module):
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.data.numpy().shape
 
-
 		################### START GRU ########################
 
 		# Init Gru hidden Randomly
@@ -148,11 +147,13 @@ class WAP(nn.Module):
 				for i in range (current_tensor_shape[1]):
 					multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
 
+			
+					
 			# Sum all vector after element-wise multiply to get Ct
 			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
-
+			
 			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
 			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
 			from_last_output = self.Out_to_hidden_GRU(last_y)
@@ -169,11 +170,11 @@ class WAP(nn.Module):
 			# Update last prediction
 			last_y = GRU_output
 
-
+			
 			# Apply softmax to prediction vector and concatenate to return_tensor
 			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 			return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
-
+			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
@@ -190,27 +191,38 @@ class WAP(nn.Module):
 			from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 			
 
+			# New Approach
+			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
+			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
+			from_a = self.Coverage_MLP_From_A(FCN_Straight)
+			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
 
 			for batch_index in range(current_tensor_shape[0]):
-				
-
-
-			# update alpha matrix
-			for batch_index in range(current_tensor_shape[0]):
-				for i in range(current_tensor_shape[2]):
-					for j in range(current_tensor_shape[3]):
-						
-						#t = torch.transpose(alpha_mat.view(3,4),0,1)
-						# this is a_i vector
-						temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
-						
-						# get input from FCN_Result
-						from_a = self.Coverage_MLP_From_A(temp_tensor)
-
-						# Assign pixel by pixel to alpha matrix
-						alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
-						#pdb.set_trace()
+				#print (from_h.data[batch_index][0])
+				from_a.data[batch_index] = from_a.data[batch_index] + from_h.data[batch_index][0]
 			
+			alpha_mat = torch.squeeze(from_a, dim = 1)
+			#print (alpha_mat.data.numpy())
+			
+		
+			
+			# update alpha matrix
+			#for batch_index in range(current_tensor_shape[0]):
+			#	for i in range(current_tensor_shape[2]):
+			#		for j in range(current_tensor_shape[3]):
+			#			
+			#			#t = torch.transpose(alpha_mat.view(3,4),0,1)
+			#			# this is a_i vector
+			#			temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
+			#			
+			#			# get input from FCN_Result
+			#			from_a = self.Coverage_MLP_From_A(temp_tensor)
+			#
+			#			# Assign pixel by pixel to alpha matrix
+			#			alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
+			#			#pdb.set_trace()
+			#
+			#			print (alpha_mat.data.numpy().shape)
 			
 			
 			alpha_mat = F.tanh(alpha_mat)
