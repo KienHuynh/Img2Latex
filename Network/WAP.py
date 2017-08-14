@@ -12,6 +12,7 @@ import getGT
 import pdb
 
 class WAP(nn.Module):
+<<<<<<< HEAD
     def __init__(self):
         super(WAP, self).__init__()
         self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
@@ -39,6 +40,36 @@ class WAP(nn.Module):
         self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
         
         self.pool_4 = nn.MaxPool2d(2, stride=2)
+=======
+	def __init__(self):
+		super(WAP, self).__init__()
+		self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
+		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		
+		self.pool_1 = nn.MaxPool2d(2, stride=2)
+		
+		self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1,padding=1)
+		self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		
+		self.pool_2 = nn.MaxPool2d(2, stride=2)
+		self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		
+		self.pool_3 = nn.MaxPool2d(2, stride=2)
+		
+		self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
+		self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		
+		self.pool_4 = nn.MaxPool2d(2, stride=2)
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 
 		###############################################
@@ -51,6 +82,7 @@ class WAP(nn.Module):
 		###############################################
 
 		#Outputs: output, h_n
+<<<<<<< HEAD
         self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
         self.grucell = nn.GRUCell(128, 128)
         self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
@@ -71,10 +103,33 @@ class WAP(nn.Module):
         self.max_output_len = max_len
         
     def forward(self, x):
+=======
+		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+		self.grucell = nn.GRUCell(128, 128)
+		self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
+		
+		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
+		
+		self.Coverage_MLP_From_H = nn.Linear(128, 1)
+		self.Coverage_MLP_From_A = nn.Linear(128, 1)
+		
+		self.alpha_softmax = torch.nn.Softmax()
+		
+		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
+		
+	def setGroundTruth(self, GT):
+		self.GT = GT
+		
+	def setWordMaxLen(self, max_len):
+		self.max_output_len = max_len
+		
+	def forward(self, x):
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 		####################################################################
 		################ FCN BLOCK #########################################
 		####################################################################
+<<<<<<< HEAD
         x = F.relu(self.conv1_1(x))
         x = F.relu(self.conv1_2(x))
         x = F.relu(self.conv1_3(x))
@@ -101,13 +156,49 @@ class WAP(nn.Module):
         
         
         FCN_Result = F.relu(self.pool_4(x))
+=======
+		
+		
+		x = F.relu(self.conv1_1(x))
+		x = F.relu(self.conv1_2(x))
+		x = F.relu(self.conv1_3(x))
+		x = F.relu(self.conv1_4(x))
+		
+		x = F.relu(self.pool_1(x))
+		
+		x = F.relu(self.conv2_1(x))
+		x = F.relu(self.conv2_2(x))
+		x = F.relu(self.conv2_3(x))
+		x = F.relu(self.conv2_4(x))
+		
+		x = F.relu(self.pool_2(x))
+		
+		x = F.relu(self.conv3_1(x))
+		x = F.relu(self.conv3_2(x))
+		x = F.relu(self.conv3_3(x))
+		x = F.relu(self.conv3_4(x))
+		
+		x = F.relu(self.pool_3(x))
+		
+		x = F.relu(self.conv4_1(x))
+		x = F.relu(self.conv4_2(x))
+		x = F.relu(self.conv4_3(x))
+		x = F.relu(self.conv4_4(x))
+		
+		
+		FCN_Result = F.relu(self.pool_4(x))
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 		####################################################################
 		################ GRU BLOCK #########################################
 		####################################################################
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
+<<<<<<< HEAD
         current_tensor_shape = FCN_Result.data.numpy().shape
+=======
+		current_tensor_shape = FCN_Result.data.numpy().shape
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 		################### START GRU ########################
 
@@ -125,15 +216,25 @@ class WAP(nn.Module):
         last_y = torch.squeeze(return_tensor, dim = 1)
 
 		#Init Alpha and Beta Matrix
+<<<<<<< HEAD
         alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
         beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+=======
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 #		pdb.set_trace()
 		####################################################################
 		################ GRU ITERATION #####################################
 		####################################################################
+<<<<<<< HEAD
         
         
         for RNN_iterate in range (self.max_output_len - 1):
+=======
+		
+		for RNN_iterate in range (self.max_output_len - 1):
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 			# Clone of FCN_Result: We will use this for generating Ct Vector
             multiplied_mat = FCN_Result.clone()
@@ -146,9 +247,15 @@ class WAP(nn.Module):
 			
 					
 			# Sum all vector after element-wise multiply to get Ct
+<<<<<<< HEAD
             multiplied_mat = torch.sum(multiplied_mat, dim = 2)
             multiplied_mat = torch.sum(multiplied_mat, dim = 3)
             multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
+=======
+			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
+			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
+			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 			
 			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
 			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
@@ -158,12 +265,17 @@ class WAP(nn.Module):
 			# y(t-1) = from_last_output
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
+<<<<<<< HEAD
             GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
+=======
+			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 			#print (GRU_output.data.numpy().shape)
 
 			# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
             GRU_output = self.post_gru(GRU_hidden)
 			# Update last prediction
+<<<<<<< HEAD
             last_y = GRU_output
 
 			
@@ -176,6 +288,19 @@ class WAP(nn.Module):
             return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 #            pdb.set_trace()
 
+=======
+			last_y = GRU_output
+
+			
+			# Apply softmax to prediction vector and concatenate to return_tensor
+			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
+			return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+			
+			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
+			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
+			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			# pdb.set_trace()
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 			##########################################################
 			######### COVERAGE #######################################
 			##########################################################
@@ -189,6 +314,7 @@ class WAP(nn.Module):
 			
 
 			# New Approach
+<<<<<<< HEAD
             FCN_Straight = FCN_Result.transpose(1,3).contiguous()
             FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
             from_a = self.Coverage_MLP_From_A(FCN_Straight)
@@ -223,6 +349,43 @@ class WAP(nn.Module):
             
             alpha_mat = F.tanh(alpha_mat)
             alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
+=======
+			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
+			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
+			from_a = self.Coverage_MLP_From_A(FCN_Straight)
+			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
+
+			for batch_index in range(current_tensor_shape[0]):
+				#print (from_h.data[batch_index][0])
+				from_a.data[batch_index] = from_a.data[batch_index] + from_h.data[batch_index][0]
+			
+			alpha_mat = torch.squeeze(from_a, dim = 1)
+			#print (alpha_mat.data.numpy())
+			
+		
+			
+			# update alpha matrix
+			#for batch_index in range(current_tensor_shape[0]):
+			#	for i in range(current_tensor_shape[2]):
+			#		for j in range(current_tensor_shape[3]):
+			#			
+			#			#t = torch.transpose(alpha_mat.view(3,4),0,1)
+			#			# this is a_i vector
+			#			temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
+			#			
+			#			# get input from FCN_Result
+			#			from_a = self.Coverage_MLP_From_A(temp_tensor)
+			#
+			#			# Assign pixel by pixel to alpha matrix
+			#			alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
+			#			#pdb.set_trace()
+			#
+			#			print (alpha_mat.data.numpy().shape)
+			
+			
+			alpha_mat = F.tanh(alpha_mat)
+			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
+>>>>>>> da05f8e55653f7fddba58cbb449d9d0ae44159cc
 
 			
 		#return torch.unsqueeze(return_tensor, dim = 1)
