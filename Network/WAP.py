@@ -42,6 +42,8 @@ class WAP(nn.Module):
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
 
+		self.testnn = nn.Linear(128, 2)
+
 		###############################################
 		########### ATTENTION #########################
 		###############################################
@@ -114,6 +116,8 @@ class WAP(nn.Module):
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.data.numpy().shape
 
+		
+		
 		################### START GRU ########################
 
 		# Init Gru hidden Randomly
@@ -146,7 +150,6 @@ class WAP(nn.Module):
 			for batch_index in range(current_tensor_shape[0]):
 				for i in range (current_tensor_shape[1]):
 					multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
-
 			
 					
 			# Sum all vector after element-wise multiply to get Ct
@@ -154,6 +157,9 @@ class WAP(nn.Module):
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 			
+			ret_temp = multiplied_mat
+			return self.testnn(ret_temp)
+
 			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
 			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
 			from_last_output = self.Out_to_hidden_GRU(last_y)
