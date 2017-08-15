@@ -42,7 +42,7 @@ class WAP(nn.Module):
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
 
-		self.testnn = nn.Linear(128, 2)
+		
 
 		###############################################
 		########### ATTENTION #########################
@@ -66,6 +66,8 @@ class WAP(nn.Module):
 		self.alpha_softmax = torch.nn.Softmax()
 		
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
+		
+		self.testnn = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 2)
 		
 	def setGroundTruth(self, GT):
 		self.GT = GT
@@ -125,16 +127,18 @@ class WAP(nn.Module):
 		GRU_hidden = Variable(torch.rand(current_tensor_shape[0], 128))
 
 		# Init return tensor (the prediction of mathematical Expression)
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
-
+		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+		insert_index = 1
+		
 		# Init the first vector in return_tensor: It is the <s> token
 		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
-		last_y = torch.squeeze(return_tensor, dim = 1)
-
+		# last_y = torch.squeeze(return_tensor, dim = 1)
+		last_y = Variable(return_tensor.data[:, 0, :])
+		
 		#Init Alpha and Beta Matrix
-		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
 		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 #		pdb.set_trace()
 		####################################################################
@@ -143,25 +147,28 @@ class WAP(nn.Module):
 		
 		for RNN_iterate in range (self.max_output_len - 1):
 
-			# Clone of FCN_Result: We will use this for generating Ct Vector
+			# Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
 			multiplied_mat = FCN_Result.clone()
 
 			# Element-wise multiply between alpha and FCN_Result
-			for batch_index in range(current_tensor_shape[0]):
-				for i in range (current_tensor_shape[1]):
-					multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
+			#for batch_index in range(current_tensor_shape[0]):
+			#	for i in range (current_tensor_shape[1]):
+			#		multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
 			
+			expanded_alpha_mat = alpha_mat.expand(current_tensor_shape)
+			multiplied_mat = FCN_Result * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
 			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 			
-			ret_temp = multiplied_mat
-			return self.testnn(ret_temp)
+			
 
 			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
 			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
+			
+			
 			from_last_output = self.Out_to_hidden_GRU(last_y)
 
 			# Run GRUcell, Calculate h(t) - GRU_hidden
@@ -169,21 +176,41 @@ class WAP(nn.Module):
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
 			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
+			
+			
+			
 			#print (GRU_output.data.numpy().shape)
 
 			# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
 			GRU_output = self.post_gru(GRU_hidden)
 			# Update last prediction
+
 			last_y = GRU_output
 
 			
+			
 			# Apply softmax to prediction vector and concatenate to return_tensor
-			GRU_output = torch.unsqueeze(GRU_output, dim = 1)
+			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
+			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
 			return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+			
+			
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
-			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			#return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			
+			return_tensor.data[:, insert_index, :] = return_vector.data
+			insert_index = insert_index + 1
+			
+			#print ('-----')
+			#print (return_vector.data.numpy().shape)
+			#print (return_tensor.data.numpy().shape)
+			
+			#ret_temp = multiplied_mat.view(1, 65536)
+
+			
 			# pdb.set_trace()
 			##########################################################
 			######### COVERAGE #######################################

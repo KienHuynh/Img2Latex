@@ -108,13 +108,20 @@ class TestingNetwork:
 	
 	
 	
-	def try_print(self):
+	def try_print(self, print_flag = True):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
 			p_grad = p.grad 
 			
-			print (p_grad)
-	
+			try:
+				if print_flag:
+					print ('exist')
+				else:
+					print (p_grad.data.numpy())
+			except:
+				if print_flag:
+					print ('non - exist')
+				pass
 	def setCudaState(self, state = True):
 		self.using_cuda = state
 		
@@ -135,28 +142,29 @@ class TestingNetwork:
 			output = self.model(data)
 			#print('output', output)
 
-			#for b_id in range(NetWorkConfig.BATCH_SIZE):
-			#	for s_id in range(50):
-			#		if target.data[b_id, s_id] == 1:
-			#			target.data[b_id,s_id] = 0
-			#			output.data[b_id,s_id, :] = 0
-			#target = target.view(NetWorkConfig.BATCH_SIZE * 50)
+			for b_id in range(NetWorkConfig.BATCH_SIZE):
+				for s_id in range(50):
+					if target.data[b_id, s_id] == 1:
+						target.data[b_id,s_id] = 0
+						output.data[b_id,s_id, :] = 0
+			target = target.view(NetWorkConfig.BATCH_SIZE * 50)
 			
 
 
-			#output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
+			output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
 
 
 			#######################3			
 
-			#print (output)
-			tar = Variable(torch.LongTensor(1).zero_(), requires_grad=False)
-			tar.data[0] = 1
-			#tar.data[1] = 1
-			loss = self.criterion(output, tar)
+			##print (output)
+			#tar = Variable(torch.LongTensor(1).zero_(), requires_grad=False)
+			#tar.data[0] = 1
+			##print (output)
+			##tar.data[1] = 1
+			#loss = self.criterion(output, tar)
 
 			#########################
-			#loss = self.criterion(output, target)
+			loss = self.criterion(output, target)
 			loss.backward()
 			
 			self.grad_clip()
