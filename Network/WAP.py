@@ -47,27 +47,27 @@ class WAP(nn.Module):
 		###############################################
 		########### ATTENTION #########################
 		###############################################
-
+		self.gru_hidden_size = 128
 
 		###############################################
 		########### GRU ###############################
 		###############################################
 
 		#Outputs: output, h_n
-		self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
-		self.grucell = nn.GRUCell(128, 128)
-		self.post_gru = nn.Linear(128, NetWorkConfig.NUM_OF_TOKEN)
+		#self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
+		self.grucell = nn.GRUCell(128, self.gru_hidden_size)
+		self.post_gru = nn.Linear(self.gru_hidden_size, NetWorkConfig.NUM_OF_TOKEN)
 		
 		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
 		
-		self.Coverage_MLP_From_H = nn.Linear(128, 1)
-		self.Coverage_MLP_From_A = nn.Linear(128, 1)
+		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
+		#self.Coverage_MLP_From_A = nn.Linear(128, 1)
+		#self.alpha_softmax = torch.nn.Softmax()
 		
-		self.alpha_softmax = torch.nn.Softmax()
-		
+
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
 		
-		self.testnn = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 2)
+		self.testnn = nn.Linear(1, 2)
 		
 	def setGroundTruth(self, GT):
 		self.GT = GT
@@ -117,14 +117,12 @@ class WAP(nn.Module):
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.data.numpy().shape
-
-		
 		
 		################### START GRU ########################
 
 		# Init Gru hidden Randomly
 		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
-		GRU_hidden = Variable(torch.rand(current_tensor_shape[0], 128))
+		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128).zero_())
 
 		# Init return tensor (the prediction of mathematical Expression)
 		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
@@ -177,8 +175,6 @@ class WAP(nn.Module):
 			# Ct	 = multiplied_mat
 			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
 			
-			
-			
 			#print (GRU_output.data.numpy().shape)
 
 			# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
@@ -187,15 +183,11 @@ class WAP(nn.Module):
 
 			last_y = GRU_output
 
-			
-			
 			# Apply softmax to prediction vector and concatenate to return_tensor
 			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
-			return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
-			
-			
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
@@ -210,7 +202,6 @@ class WAP(nn.Module):
 			
 			#ret_temp = multiplied_mat.view(1, 65536)
 
-			
 			# pdb.set_trace()
 			##########################################################
 			######### COVERAGE #######################################
@@ -220,9 +211,12 @@ class WAP(nn.Module):
 			# FCN result
 			# h(t-1): current hidden state of GRU
 
+
 			# Get Input from h(t - 1)
-			from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
+			from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
+			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 			
+			return self.testnn(from_h)
 
 			# New Approach
 			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
@@ -260,8 +254,9 @@ class WAP(nn.Module):
 			
 			alpha_mat = F.tanh(alpha_mat)
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
-
 			
+			
+
 		#return torch.unsqueeze(return_tensor, dim = 1)
 		# Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
 		return return_tensor
