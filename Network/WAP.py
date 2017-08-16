@@ -173,6 +173,9 @@ class WAP(nn.Module):
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 			
 			
+			########################################################################################
+			################### UNDER CONSTRUCTION ####################################################
+			########################################################################################
 
 			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
 			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
@@ -198,10 +201,15 @@ class WAP(nn.Module):
 			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
 			
+
+
+
+			########################################################################################
+			################### UNDER CONSTRUCTION ####################################################
+			########################################################################################
+
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
 			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
-			
-
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
