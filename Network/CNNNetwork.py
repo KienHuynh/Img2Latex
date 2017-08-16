@@ -70,7 +70,7 @@ class TestingNetwork:
 		
 		self.using_cuda = False
 		self.batch_size = 64
-		self.learning_rate = 0.001
+		self.learning_rate = 0.005
 		self.momentum = 0.9
 		
 		
@@ -144,36 +144,38 @@ class TestingNetwork:
 			output = self.model(data)
 			#print('output', output)
 
-			#for b_id in range(NetWorkConfig.BATCH_SIZE):
-			#	for s_id in range(50):
-			#		if target.data[b_id, s_id] == 1:
-			#			target.data[b_id,s_id] = 0
-			#			output.data[b_id,s_id, :] = 0
-			#target = target.view(NetWorkConfig.BATCH_SIZE * 50)
+			if True:
+			
+				for b_id in range(NetWorkConfig.BATCH_SIZE):
+					for s_id in range(50):
+						if target.data[b_id, s_id] == 1:
+							target.data[b_id,s_id] = 0
+							output.data[b_id,s_id, :] = 0
+				target = target.view(NetWorkConfig.BATCH_SIZE * 50)
 
-			#output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
+				output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
+				loss = self.criterion(output, target)
 
+			else :
+				
+				#######################3			
 
-			#######################3			
+				#print (output)
+				tar = Variable(torch.LongTensor(1).zero_(), requires_grad=False)
+				tar.data[0] = 1
+				#print (output)
+				#tar.data[1] = 1
+				loss = self.criterion(output, tar)
 
-			#print (output)
-			tar = Variable(torch.LongTensor(1).zero_(), requires_grad=False)
-			tar.data[0] = 1
-			#print (output)
-			#tar.data[1] = 1
-			loss = self.criterion(output, tar)
-
-			#########################
-			#loss = self.criterion(output, target)
+				#########################
+			
 			loss.backward()
 			
 			self.grad_clip()
 			
-			self.try_print();
+			#self.try_print();
 			
 			self.optimizer.step()
-			
-			break
 
 			if batch_idx % 1 == 0:
 				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -182,7 +184,7 @@ class TestingNetwork:
 				
 				if batch_idx > 1:
 					pass
-					#break
+					break
 			#break
 		
 		

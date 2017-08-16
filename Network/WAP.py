@@ -61,13 +61,13 @@ class WAP(nn.Module):
 		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
 		
 		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
-		#self.Coverage_MLP_From_A = nn.Linear(128, 1)
-		#self.alpha_softmax = torch.nn.Softmax()
+		self.Coverage_MLP_From_A = nn.Linear(128, 1)
+		self.alpha_softmax = torch.nn.Softmax()
 		
 
 		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
 		
-		self.testnn = nn.Linear(1, 2)
+		self.testnn = nn.Linear(65536, 128)
 		
 	def setGroundTruth(self, GT):
 		self.GT = GT
@@ -117,6 +117,7 @@ class WAP(nn.Module):
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.data.numpy().shape
+		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		
 		################### START GRU ########################
 
@@ -125,18 +126,18 @@ class WAP(nn.Module):
 		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128).zero_())
 
 		# Init return tensor (the prediction of mathematical Expression)
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
-		insert_index = 1
+		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
 		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
-		# last_y = torch.squeeze(return_tensor, dim = 1)
-		last_y = Variable(return_tensor.data[:, 0, :])
+		last_y = torch.squeeze(return_tensor, dim = 1)
+		#last_y = Variable(return_tensor.data[:, 0, :])
 		
 		#Init Alpha and Beta Matrix
-		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
 		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 #		pdb.set_trace()
 		####################################################################
@@ -145,20 +146,30 @@ class WAP(nn.Module):
 		
 		for RNN_iterate in range (self.max_output_len - 1):
 
+			#print (alpha_mat.data.numpy().shape)
+		
 			# Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
 			multiplied_mat = FCN_Result.clone()
 
 			# Element-wise multiply between alpha and FCN_Result
+			#--------
 			#for batch_index in range(current_tensor_shape[0]):
 			#	for i in range (current_tensor_shape[1]):
-			#		multiplied_mat.data[batch_index][i] = multiplied_mat.data[batch_index][i] * alpha_mat.data[batch_index]
-			
-			expanded_alpha_mat = alpha_mat.expand(current_tensor_shape)
-			multiplied_mat = FCN_Result * expanded_alpha_mat
+			#		multiplied_mat[batch_index][i] = multiplied_mat[batch_index][i] * alpha_mat[batch_index]
+			#-------- # alpha : batch x 16 x 32
+			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
+			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
+			multiplied_mat = multiplied_mat * expanded_alpha_mat
+			#--------
+			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
+			#expanded_alpha_mat = mytemp
+			#multiplied_mat = multiplied_mat * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
 			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
 			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
+			#multiplied_mat = self.testnn(multiplied_mat.view(current_tensor_shape[0], 65536))
+			
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 			
 			
@@ -186,15 +197,19 @@ class WAP(nn.Module):
 			# Apply softmax to prediction vector and concatenate to return_tensor
 			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
 			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
-			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+			
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
+			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+			
+
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
-			#return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 			
-			return_tensor.data[:, insert_index, :] = return_vector.data
-			insert_index = insert_index + 1
+			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			#print (return_tensor.data.numpy().shape)
+			#return_tensor.data[:, insert_index, :] = return_vector.data
+			#insert_index = insert_index + 1
 			
 			#print ('-----')
 			#print (return_vector.data.numpy().shape)
@@ -215,20 +230,26 @@ class WAP(nn.Module):
 			# Get Input from h(t - 1)
 			from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
 			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
-			
-			return self.testnn(from_h)
 
 			# New Approach
 			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
 			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
 			from_a = self.Coverage_MLP_From_A(FCN_Straight)
-			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
+			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 
-			for batch_index in range(current_tensor_shape[0]):
-				#print (from_h.data[batch_index][0])
-				from_a.data[batch_index] = from_a.data[batch_index] + from_h.data[batch_index][0]
-			
-			alpha_mat = torch.squeeze(from_a, dim = 1)
+			#---------------
+			#for batch_index in range(current_tensor_shape[0]):
+			#	#print (from_h.data[batch_index][0])
+			#	#from_a.data[batch_index] = from_a.data[batch_index] + from_h.data[batch_index][0]
+			#	print (from_a.data.numpy().shape)
+			#	print (from_h.data.numpy().shape)
+			#	from_a[batch_index] = from_a[batch_index] + from_h[batch_index][0]
+			#---------------
+			from_a = from_a + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			#---------------
+
+
+			#alpha_mat = torch.squeeze(from_a, dim = 1)
 			#print (alpha_mat.data.numpy())
 			
 		
@@ -251,7 +272,7 @@ class WAP(nn.Module):
 			#
 			#			print (alpha_mat.data.numpy().shape)
 			
-			
+			#alpha_mat = alpha_mat.view(1,16, 32)
 			alpha_mat = F.tanh(alpha_mat)
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
 			

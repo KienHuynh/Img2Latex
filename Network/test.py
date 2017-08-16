@@ -51,12 +51,10 @@ v2.data[0][2][1] = 8
 v2.data[0][2][2] = 9
 
 
-print (v1)
+#print (v1)
 print (v2)
 
-v3 = v1 * v2
-
-print (v3)
+print (v2.repeat(2))
 
 quit()
 
