@@ -105,18 +105,18 @@ class TestingNetwork:
 		for p in params:
 			p_grad = p.grad 
 			
-		try:
-			if print_flag:
-				print ('exist')
-				print (type(p_grad))
-				print (p_grad.data.numpy().shape)
-			else:
-				print (p_grad.data.numpy())
-				
-		except:
-			if print_flag:
-				print ('non - exist')
-				pass
+			try:
+				if print_flag:
+					print ('exist')
+					print (type(p_grad))
+					print (p_grad.data.numpy().shape)
+				else:
+					print (p_grad.data.numpy())
+					
+			except:
+				if print_flag:
+					print ('non - exist')
+					pass
 			
 			
 	def setCudaState(self, state = True):
@@ -164,7 +164,7 @@ class TestingNetwork:
 			loss.backward()
 			self.grad_clip()
 			
-			#self.try_print();
+			self.try_print();
 			
 			self.optimizer.step()
 			
