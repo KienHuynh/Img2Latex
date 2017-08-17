@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+import getGT
 from torch.autograd import Variable
 import numpy
 numpy.set_printoptions(threshold=10000)
@@ -13,7 +13,7 @@ import WAP
 import NetWorkConfig
 import pdb
 class Net(nn.Module):
-
+	
 	def __init__(self):
 		super(Net, self).__init__()
 		self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -23,18 +23,16 @@ class Net(nn.Module):
 		self.fc2 = nn.Linear(50, 10)
 		
 	def forward(self, x):
-		
 		x = F.relu(F.max_pool2d(self.conv1(x), 2))
 		x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
 		
 		x = x.view(-1, 320)
 		#
-		
 		x = F.relu(self.fc1(x))
 		x = F.dropout(x, training=self.training)
 		x = self.fc2(x)
 		return F.log_softmax(x)
-
+	
 	def __init__(self):
 		super(Net, self).__init__()
 		self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -44,10 +42,8 @@ class Net(nn.Module):
 		self.fc2 = nn.Linear(50, 10)
 		
 	def forward(self, x):
-		
 		x = F.relu(F.max_pool2d(self.conv1(x), 2))
 		x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-		
 		x = x.view(-1, 320)
 		#
 		
@@ -66,11 +62,9 @@ class TestingNetwork:
 		################################################
 		########## ATTRIBUTE INIT ######################
 		################################################
-
-		
 		self.using_cuda = False
 		self.batch_size = 64
-		self.learning_rate = 0.005
+		self.learning_rate = 0.0002
 		self.momentum = 0.9
 		
 		
@@ -78,20 +72,19 @@ class TestingNetwork:
 
 		#self.model = Net()
 		#self.model = FCN()
-		
 		train_params = []
 		for p in self.model.parameters(): 
 			if (p.requires_grad):
 				train_params.append(p)
+				
 		self.optimizer = optim.SGD(train_params, lr=self.learning_rate, momentum=self.momentum)
 		
 
 		#self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 		self.NLLloss = nn.NLLLoss2d()
 		self.NLLloss1 = nn.NLLLoss()
-		
 		self.criterion = nn.CrossEntropyLoss()
-	
+		
 	def grad_clip(self, max_grad = 0.1):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
@@ -104,26 +97,28 @@ class TestingNetwork:
 				magnitude = torch.sqrt(torch.sum(p_grad**2)) 
 				if (magnitude.data[0] > max_grad):
 					p_grad.data = (max_grad*p_grad/magnitude.data[0]).data
-	
-	
-	
-	
+					
+					
+					
 	def try_print(self, print_flag = True):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
 			p_grad = p.grad 
 			
-			try:
-				if print_flag:
-					print ('exist')
-					print (type(p_grad))
-					print (p_grad.data.numpy().shape)
-				else:
-					print (p_grad.data.numpy())
-			except:
-				if print_flag:
-					print ('non - exist')
+		try:
+			if print_flag:
+				print ('exist')
+				print (type(p_grad))
+				print (p_grad.data.numpy().shape)
+			else:
+				print (p_grad.data.numpy())
+				
+		except:
+			if print_flag:
+				print ('non - exist')
 				pass
+			
+			
 	def setCudaState(self, state = True):
 		self.using_cuda = state
 		
@@ -134,28 +129,26 @@ class TestingNetwork:
 	def train(self, epoch):
 		self.model.train()
 		for batch_idx, (data, target) in enumerate(self.train_loader):
-			
-			
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
-
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
 			#print('output', output)
-
-			if True:
 			
+			if True:
 				for b_id in range(NetWorkConfig.BATCH_SIZE):
 					for s_id in range(50):
-						if target.data[b_id, s_id] == 1:
+						if target.data[b_id, s_id] == getGT.word_to_id['$P']:
 							target.data[b_id,s_id] = 0
 							output.data[b_id,s_id, :] = 0
+							output.data[b_id,s_id, 0] = 1
+							
 				target = target.view(NetWorkConfig.BATCH_SIZE * 50)
-
 				output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
+				
 				loss = self.criterion(output, target)
-
+				
 			else :
 				
 				#######################3			
@@ -168,26 +161,23 @@ class TestingNetwork:
 				loss = self.criterion(output, tar)
 
 				#########################
-			
 			loss.backward()
-			
 			self.grad_clip()
 			
 			#self.try_print();
 			
 			self.optimizer.step()
-
+			
 			if batch_idx % 1 == 0:
 				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				
 				if batch_idx > 1:
 					pass
-					break
+					#break
 			#break
 		
-		
+	
 	def test(self):
 		self.model.eval()
 		test_loss = 0
@@ -207,9 +197,10 @@ class TestingNetwork:
 		print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
 				test_loss, correct, len(self.test_loader.dataset),
 				100. * correct / len(self.test_loader.dataset)))
-	
+		
 	def saveModelToFile(self, path):
 		torch.save(self.model.state_dict(), path)
+	
 	def loadModelFromFile(self, path):
 		self.model.load_state_dict(torch.load(path))
 

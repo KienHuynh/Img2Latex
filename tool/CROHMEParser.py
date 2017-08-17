@@ -632,7 +632,7 @@ def ParseFolderToBinary2(input_path, scale_factor = 1, output_path = './', verle
 				GTResult.append(temp_GT)
 				
 			count = count + 1
-			if count == 4:
+			if count == 2:
 				break
 			
 		break
