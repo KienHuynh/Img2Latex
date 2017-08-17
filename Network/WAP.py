@@ -14,42 +14,69 @@ import pdb
 import math
 
 class WAP(nn.Module):
-	def __init__(self):
-		super(WAP, self).__init__()
-		self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
-		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
-		self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
-		self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
-		
-		self.pool_1 = nn.MaxPool2d(2, stride=2)
-		
-		self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1,padding=1)
-		self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		
-		self.pool_2 = nn.MaxPool2d(2, stride=2)
-		self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
-		
-		self.pool_3 = nn.MaxPool2d(2, stride=2)
-		
-		self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
-		self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
-		self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
-		self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
-		
-		self.pool_4 = nn.MaxPool2d(2, stride=2)
+    def __init__(self):
+		#######################################################
+		## PARAMETER DIFINITION
+        self.gru_hidden_size = 128
+        self.embed_dimension = 128
+		#######################################################
+		## NETWORK STRUCTURE
+        super(WAP, self).__init__()
+        self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
+        self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        
+        self.pool_1 = nn.MaxPool2d(2, stride=2)
+        
+        self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1,padding=1)
+        self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        
+        self.pool_2 = nn.MaxPool2d(2, stride=2)
+        self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        
+        self.pool_3 = nn.MaxPool2d(2, stride=2)
+        
+        self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
+        self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        
+        self.pool_4 = nn.MaxPool2d(2, stride=2)
 
 
 		
 
-		###############################################
-		########### ATTENTION #########################
-		###############################################
-		self.gru_hidden_size = 128
+		# Temp Declaration
+		# z : update
+		# h : reset
+		# r : candidate
+		# Expect size: 1 x 128 (1 x self.gru_hidden_size)
+		# The hard code "128" down there is the height of FCN Result
+        
+        self.embeds = nn.Embedding(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension)
+        self.embeds_temp = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
+        self.FC_Wyz = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+        self.FC_Uhz = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+        self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+		
+        self.FC_Wyr = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+        self.FC_Uhr = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+        self.FC_Ccr = nn.Linear(128, self.gru_hidden_size)
+		
+        self.FC_Wyh = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+        self.FC_Urh = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+        self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+			
+        self.FC_Wo = nn.Linear(self.embed_dimension, NetWorkConfig.NUM_OF_TOKEN) #
+        self.FC_Wh = nn.Linear(self.gru_hidden_size, self.embed_dimension) # for (11)
+        self.FC_Wc = nn.Linear(128, self.embed_dimension) #
+		
 
 		###############################################
 		########### GRU ###############################
@@ -57,101 +84,98 @@ class WAP(nn.Module):
 
 		#Outputs: output, h_n
 		#self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
-		self.grucell = nn.GRUCell(128, self.gru_hidden_size)
-		self.post_gru = nn.Linear(self.gru_hidden_size, NetWorkConfig.NUM_OF_TOKEN)
+        self.grucell = nn.GRUCell(128, self.gru_hidden_size)
+        self.post_gru = nn.Linear(self.gru_hidden_size, NetWorkConfig.NUM_OF_TOKEN)
 		
-		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
+        self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
 		
-		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
-		self.Coverage_MLP_From_A = nn.Linear(128, 1)
-		self.alpha_softmax = torch.nn.Softmax()
-		
-
-		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
-		
-		self.testnn = nn.Linear(65536, 128)
-		
-	def setGroundTruth(self, GT):
-		self.GT = GT
-		
-	def setWordMaxLen(self, max_len):
-		self.max_output_len = max_len
-		
-	def forward(self, x):
+        self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
+        self.Coverage_MLP_From_A = nn.Linear(128, 1)
+        self.alpha_softmax = torch.nn.Softmax()
+        
+        
+        self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
+        self.testnn = nn.Linear(65536, 128)
+        
+    def setGroundTruth(self, GT):
+        self.GT = GT
+        
+    def setWordMaxLen(self, max_len):
+        self.max_output_len = max_len
+        
+    def forward(self, x):
 
 		####################################################################
 		################ FCN BLOCK #########################################
 		####################################################################
+        
+        x = F.relu(self.conv1_1(x))
+        x = F.relu(self.conv1_2(x))
+        x = F.relu(self.conv1_3(x))
+        x = F.relu(self.conv1_4(x))
+        
+        x = F.relu(self.pool_1(x))
 		
+        x = F.relu(self.conv2_1(x))
+        x = F.relu(self.conv2_2(x))
+        x = F.relu(self.conv2_3(x))
+        x = F.relu(self.conv2_4(x))
 		
-		x = F.relu(self.conv1_1(x))
-		x = F.relu(self.conv1_2(x))
-		x = F.relu(self.conv1_3(x))
-		x = F.relu(self.conv1_4(x))
+        x = F.relu(self.pool_2(x))
 		
-		x = F.relu(self.pool_1(x))
-		
-		x = F.relu(self.conv2_1(x))
-		x = F.relu(self.conv2_2(x))
-		x = F.relu(self.conv2_3(x))
-		x = F.relu(self.conv2_4(x))
-		
-		x = F.relu(self.pool_2(x))
-		
-		x = F.relu(self.conv3_1(x))
-		x = F.relu(self.conv3_2(x))
-		x = F.relu(self.conv3_3(x))
-		x = F.relu(self.conv3_4(x))
-		
-		x = F.relu(self.pool_3(x))
-		
-		x = F.relu(self.conv4_1(x))
-		x = F.relu(self.conv4_2(x))
-		x = F.relu(self.conv4_3(x))
-		x = F.relu(self.conv4_4(x))
-		
-		
-		FCN_Result = F.relu(self.pool_4(x))
+        x = F.relu(self.conv3_1(x))
+        x = F.relu(self.conv3_2(x))
+        x = F.relu(self.conv3_3(x))
+        x = F.relu(self.conv3_4(x))
+        
+        x = F.relu(self.pool_3(x))
+        
+        x = F.relu(self.conv4_1(x))
+        x = F.relu(self.conv4_2(x))
+        x = F.relu(self.conv4_3(x))
+        x = F.relu(self.conv4_4(x))
+        
+        FCN_Result = F.relu(self.pool_4(x))
 
 		####################################################################
 		################ GRU BLOCK #########################################
 		####################################################################
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
-		current_tensor_shape = FCN_Result.data.numpy().shape
-		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
+        current_tensor_shape = FCN_Result.data.numpy().shape
+        num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		
 		################### START GRU ########################
 
 		# Init Gru hidden Randomly
 		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
-		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128).zero_())
+        GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128).zero_())
 
 		# Init return tensor (the prediction of mathematical Expression)
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+        return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
-		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
+        return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
-		last_y = torch.squeeze(return_tensor, dim = 1)
-		#last_y = Variable(return_tensor.data[:, 0, :])
+        GRU_output = torch.squeeze(return_tensor, dim = 1)
+		#GRU_output = Variable(return_tensor.data[:, 0, :])
 		
 		#Init Alpha and Beta Matrix
-		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
-		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+        alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
+        beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
 #		pdb.set_trace()
 		####################################################################
 		################ GRU ITERATION #####################################
 		####################################################################
-		
-		for RNN_iterate in range (self.max_output_len - 1):
+        
+        for RNN_iterate in range (self.max_output_len - 1):
 
 			#print (alpha_mat.data.numpy().shape)
 		
 			# Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
-			multiplied_mat = FCN_Result.clone()
+            multiplied_mat = FCN_Result.clone()
 
 			# Element-wise multiply between alpha and FCN_Result
 			#--------
@@ -159,50 +183,75 @@ class WAP(nn.Module):
 			#	for i in range (current_tensor_shape[1]):
 			#		multiplied_mat[batch_index][i] = multiplied_mat[batch_index][i] * alpha_mat[batch_index]
 			#-------- # alpha : batch x 16 x 32
-			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
-			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
-			multiplied_mat = multiplied_mat * expanded_alpha_mat
+            expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
+            expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
+            multiplied_mat = multiplied_mat * expanded_alpha_mat
 			#--------
 			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
 			#expanded_alpha_mat = mytemp
 			#multiplied_mat = multiplied_mat * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
-			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
-			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
+            multiplied_mat = torch.sum(multiplied_mat, dim = 2)
+            multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 			#multiplied_mat = self.testnn(multiplied_mat.view(current_tensor_shape[0], 65536))
 			
-			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
+            multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
 			
 			
 			########################################################################################
 			################### UNDER CONSTRUCTION ####################################################
 			########################################################################################
 
-			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
-			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
+			#--------------------------------------------------------------------
 			
-			
-			from_last_output = self.Out_to_hidden_GRU(last_y)
-
-			# Run GRUcell, Calculate h(t) - GRU_hidden
-			# y(t-1) = from_last_output
+				
+			#######################
+			# 
+			# y(t-1) = GRU_output
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
-			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
-			
 			#print (GRU_output.data.numpy().shape)
-
-			# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
-			GRU_output = self.post_gru(GRU_hidden)
-			# Update last prediction
-
-			last_y = GRU_output
-
-			# Apply softmax to prediction vector and concatenate to return_tensor
-			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
-			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
+            embedded = self.embeds_temp(GRU_output)
 			
+            zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
+            zt = F.sigmoid(zt)
+			
+            rt = self.FC_Wyr(embedded) + self.FC_Uhr(GRU_hidden) + self.FC_Ccr(multiplied_mat) # (5)
+            rt = F.sigmoid(rt)
+			
+            ht_candidate = self.FC_Wyh(embedded) + self.FC_Urh(rt * GRU_hidden) + self.FC_Ccz(multiplied_mat) #6
+            ht_candidate = F.tanh(ht_candidate)
+			
+            GRU_hidden = (1 - zt) * GRU_hidden + zt * ht_candidate
+			
+            GRU_output = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden) + self.FC_Wc(multiplied_mat))
+			#GRU_output = F.softmax(GRU_output)
+			
+			#-----------------REMMED-----------------------------------------------
+			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
+			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
+            if False:
+                from_last_output = self.Out_to_hidden_GRU(GRU_output)
+
+				# Run GRUcell, Calculate h(t) - GRU_hidden
+				# y(t-1) = from_last_output
+				# h(t-1) = GRU_hidden
+				# Ct	 = multiplied_mat
+                GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
+				
+				#print (GRU_output.data.numpy().shape)
+
+				# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
+                GRU_output = self.post_gru(GRU_hidden)
+				# Update last prediction
+
+				#last_y = GRU_output
+
+				# Apply softmax to prediction vector and concatenate to return_tensor
+				#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
+                GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
+			#----------------------------------------------------------------------------
 
 
 
@@ -211,12 +260,12 @@ class WAP(nn.Module):
 			########################################################################################
 
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
-			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+            return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
-			
-			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+            
+            return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 			#print (return_tensor.data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
@@ -238,14 +287,14 @@ class WAP(nn.Module):
 
 
 			# Get Input from h(t - 1)
-			from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
+            from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
 			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
 			# New Approach
-			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
-			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
-			from_a = self.Coverage_MLP_From_A(FCN_Straight)
-			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+            FCN_Straight = FCN_Result.transpose(1,3).contiguous()
+            FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
+            from_a = self.Coverage_MLP_From_A(FCN_Straight)
+            from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 
 			#---------------
 			#for batch_index in range(current_tensor_shape[0]):
@@ -255,7 +304,7 @@ class WAP(nn.Module):
 			#	print (from_h.data.numpy().shape)
 			#	from_a[batch_index] = from_a[batch_index] + from_h[batch_index][0]
 			#---------------
-			from_a = from_a + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+            from_a = from_a + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			#---------------
 
 
@@ -283,28 +332,13 @@ class WAP(nn.Module):
 			#			print (alpha_mat.data.numpy().shape)
 			
 			#alpha_mat = alpha_mat.view(1,16, 32)
-			alpha_mat = F.tanh(alpha_mat)
-			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
+            alpha_mat = F.tanh(alpha_mat)
+            alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
 			
 			
 
 		#return torch.unsqueeze(return_tensor, dim = 1)
 		# Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
-		return return_tensor
-
-class mGRU(nn.Module):
-    def __init__(self, embedding_dim, hidden_size, vocab_size, ct_size, num_layers = 1):
-        super(mGRU, self).__init__()
-#        self.input_size = input_size
-        self.embedding_dim = embedding_dim
-        self.hidden_size = hidden_size
-        self.vocal_size = vocab_size
-        self.num_layers = num_layers
-        
-        gate_size = 3*hidden_size
-        for layer in range(num_layers):
-            layer_input_size = embedding_dim if layer == 0 else hidden_size
-            w_ih = Parameter(torch.tensor(gate_size, layer_input_size))
-            w_hh = Parameter(torch.tensor(gate_size, hidden_size))
-            
-            
+        return return_tensor
+			
+			
