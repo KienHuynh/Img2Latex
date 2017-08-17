@@ -15,6 +15,13 @@ import math
 
 class WAP(nn.Module):
 	def __init__(self):
+		#######################################################
+		## PARAMETER DIFINITION
+		self.gru_hidden_size = 512
+		self.embed_dimension = 128
+		#######################################################
+		## NETWORK STRUCTURE
+	
 		super(WAP, self).__init__()
 		self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
 		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
@@ -46,10 +53,31 @@ class WAP(nn.Module):
 
 		
 
-		###############################################
-		########### ATTENTION #########################
-		###############################################
-		self.gru_hidden_size = 128
+		# Temp Declaration
+		# z : update
+		# h : reset
+		# r : candidate
+		# Expect size: 1 x 128 (1 x self.gru_hidden_size)
+		# The hard code "128" down there is the height of FCN Result
+		
+		self.embeds = nn.Embedding(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
+		self.embeds_temp = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
+		self.FC_Wyz = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+		self.FC_Uhz = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+		self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+		
+		self.FC_Wyr = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+		self.FC_Uhr = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+		self.FC_Ccr = nn.Linear(128, self.gru_hidden_size)
+		
+		self.FC_Wyh = nn.Linear(self.embed_dimension, self.gru_hidden_size)
+		self.FC_Urh = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
+		self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+			
+		self.FC_Wo = nn.Linear(self.embed_dimension, NetWorkConfig.NUM_OF_TOKEN) #
+		self.FC_Wh = nn.Linear(self.gru_hidden_size, self.embed_dimension) # for (11)
+		self.FC_Wc = nn.Linear(128, self.embed_dimension) #
+		
 
 		###############################################
 		########### GRU ###############################
@@ -125,7 +153,7 @@ class WAP(nn.Module):
 
 		# Init Gru hidden Randomly
 		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
-		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128).zero_())
+		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).zero_())
 
 		# Init return tensor (the prediction of mathematical Expression)
 		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
@@ -135,8 +163,8 @@ class WAP(nn.Module):
 		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
-		last_y = torch.squeeze(return_tensor, dim = 1)
-		#last_y = Variable(return_tensor.data[:, 0, :])
+		GRU_output = torch.squeeze(return_tensor, dim = 1)
+		#GRU_output = Variable(return_tensor.data[:, 0, :])
 		
 		#Init Alpha and Beta Matrix
 		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
@@ -179,30 +207,55 @@ class WAP(nn.Module):
 			################### UNDER CONSTRUCTION ####################################################
 			########################################################################################
 
-			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
-			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
+			#--------------------------------------------------------------------
 			
-			
-			from_last_output = self.Out_to_hidden_GRU(last_y)
-
-			# Run GRUcell, Calculate h(t) - GRU_hidden
-			# y(t-1) = from_last_output
+				
+			#######################
+			# 
+			# y(t-1) = GRU_output
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
-			GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
-			
 			#print (GRU_output.data.numpy().shape)
+			embedded = self.embeds_temp(GRU_output)
 
-			# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
-			GRU_output = self.post_gru(GRU_hidden)
-			# Update last prediction
-
-			last_y = GRU_output
-
-			# Apply softmax to prediction vector and concatenate to return_tensor
-			#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
-			GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
+			zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
+			zt = F.sigmoid(zt)
 			
+			rt = self.FC_Wyr(embedded) + self.FC_Uhr(GRU_hidden) + self.FC_Ccr(multiplied_mat) # (5)
+			rt = F.sigmoid(rt)
+			
+			ht_candidate = self.FC_Wyh(embedded) + self.FC_Urh(rt * GRU_hidden) + self.FC_Ccz(multiplied_mat) #6
+			ht_candidate = F.tanh(ht_candidate)
+			
+			GRU_hidden = (1 - zt) * GRU_hidden + zt * ht_candidate
+			
+			GRU_output = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden) + self.FC_Wc(multiplied_mat))
+			#GRU_output = F.softmax(GRU_output)
+			
+			#-----------------REMMED-----------------------------------------------
+			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
+			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
+			if False:
+				from_last_output = self.Out_to_hidden_GRU(GRU_output)
+
+				# Run GRUcell, Calculate h(t) - GRU_hidden
+				# y(t-1) = from_last_output
+				# h(t-1) = GRU_hidden
+				# Ct	 = multiplied_mat
+				GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
+				
+				#print (GRU_output.data.numpy().shape)
+
+				# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
+				GRU_output = self.post_gru(GRU_hidden)
+				# Update last prediction
+
+				#last_y = GRU_output
+
+				# Apply softmax to prediction vector and concatenate to return_tensor
+				#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
+				GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
+			#----------------------------------------------------------------------------
 
 
 
@@ -293,18 +346,18 @@ class WAP(nn.Module):
 		return return_tensor
 
 class mGRU(nn.Module):
-    def __init__(self, embedding_dim, hidden_size, vocab_size, ct_size, num_layers = 1):
-        super(mGRU, self).__init__()
-#        self.input_size = input_size
-        self.embedding_dim = embedding_dim
-        self.hidden_size = hidden_size
-        self.vocal_size = vocab_size
-        self.num_layers = num_layers
-        
-        gate_size = 3*hidden_size
-        for layer in range(num_layers):
-            layer_input_size = embedding_dim if layer == 0 else hidden_size
-            w_ih = Parameter(torch.tensor(gate_size, layer_input_size))
-            w_hh = Parameter(torch.tensor(gate_size, hidden_size))
-            
-            
+	def __init__(self, embedding_dim, hidden_size, vocab_size, ct_size, num_layers = 1):
+		super(mGRU, self).__init__()
+#		self.input_size = input_size
+		self.embedding_dim = embedding_dim
+		self.hidden_size = hidden_size
+		self.vocal_size = vocab_size
+		self.num_layers = num_layers
+		
+		gate_size = 3*hidden_size
+		for layer in range(num_layers):
+			layer_input_size = embedding_dim if layer == 0 else hidden_size
+			w_ih = Parameter(torch.tensor(gate_size, layer_input_size))
+			w_hh = Parameter(torch.tensor(gate_size, hidden_size))
+			
+			
