@@ -237,6 +237,7 @@ class WAP(nn.Module):
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
 			
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			beta_mat = beta_mat + alpha_mat
 			#print (return_tensor.data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
@@ -305,7 +306,7 @@ class WAP(nn.Module):
 			#alpha_mat = alpha_mat.view(1,16, 32)
 			alpha_mat = F.tanh(from_a)
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
-			beta_mat = beta_mat + alpha_mat
+			
 			
 
 		#return torch.unsqueeze(return_tensor, dim = 1)
