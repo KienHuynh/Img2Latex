@@ -46,7 +46,7 @@ class WAP(nn.Module):
 		self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
 		self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
 		self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
-		self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1) 
 		
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
@@ -60,7 +60,7 @@ class WAP(nn.Module):
 		# Expect size: 1 x 128 (1 x self.gru_hidden_size)
 		# The hard code "128" down there is the height of FCN Result
 		
-		self.embeds = nn.Embedding(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
+		#self.embeds = nn.Embedding(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
 		self.embeds_temp = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
 		self.FC_Wyz = nn.Linear(self.embed_dimension, self.gru_hidden_size)
 		self.FC_Uhz = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
@@ -83,27 +83,21 @@ class WAP(nn.Module):
 		########### GRU ###############################
 		###############################################
 
-		#Outputs: output, h_n
-		#self.gru = nn.GRU(input_size  = 128, hidden_size  = 128)
-		self.grucell = nn.GRUCell(128, self.gru_hidden_size)
-		self.post_gru = nn.Linear(self.gru_hidden_size, NetWorkConfig.NUM_OF_TOKEN)
-		
-		self.Out_to_hidden_GRU = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, 128)
 		
 		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
 		self.Coverage_MLP_From_A = nn.Linear(128, 1)
+		
+		self.Q_height = 128
+		
+		self.conv_Q_beta = nn.Conv2d(1, self.Q_height, 3, stride=1, padding=1) 
+		self.Coverage_MLP_From_Beta = nn.Linear(self.Q_height, 1)
 		self.alpha_softmax = torch.nn.Softmax()
-		
-
-		self.max_output_len  = NetWorkConfig.MAX_TOKEN_LEN
-		
-		self.testnn = nn.Linear(65536, 128)
+		#self.testnn = nn.Linear(65536, 128)
 		
 	def setGroundTruth(self, GT):
 		self.GT = GT
 		
-	def setWordMaxLen(self, max_len):
-		self.max_output_len = max_len
+
 		
 	def forward(self, x):
 
@@ -174,7 +168,7 @@ class WAP(nn.Module):
 		################ GRU ITERATION #####################################
 		####################################################################
 		
-		for RNN_iterate in range (self.max_output_len - 1):
+		for RNN_iterate in range (NetWorkConfig.MAX_TOKEN_LEN - 1):
 
 			#print (alpha_mat.data.numpy().shape)
 		
@@ -204,7 +198,7 @@ class WAP(nn.Module):
 			
 			
 			########################################################################################
-			################### UNDER CONSTRUCTION ####################################################
+			################### GRU SECTION ########################################################
 			########################################################################################
 
 			#--------------------------------------------------------------------
@@ -227,40 +221,13 @@ class WAP(nn.Module):
 			ht_candidate = self.FC_Wyh(embedded) + self.FC_Urh(rt * GRU_hidden) + self.FC_Ccz(multiplied_mat) #6
 			ht_candidate = F.tanh(ht_candidate)
 			
-			GRU_hidden = (1 - zt) * GRU_hidden + zt * ht_candidate
+			GRU_hidden = (1 - zt) * GRU_hidden + zt * ht_candidate # (7)
 			
-			GRU_output = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden) + self.FC_Wc(multiplied_mat))
+			GRU_output = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden) + self.FC_Wc(multiplied_mat)) 
 			#GRU_output = F.softmax(GRU_output)
-			
-			#-----------------REMMED-----------------------------------------------
-			# Generating GRU's input, this is neuron from y(t-1) - from_last_output
-			# Input of GRU Cell consist of y(t-1), h(t-1) and Ct (and Some gate in GRU Cell ... I think pytorch will handle itself)
-			if False:
-				from_last_output = self.Out_to_hidden_GRU(GRU_output)
-
-				# Run GRUcell, Calculate h(t) - GRU_hidden
-				# y(t-1) = from_last_output
-				# h(t-1) = GRU_hidden
-				# Ct	 = multiplied_mat
-				GRU_hidden = self.grucell(multiplied_mat + from_last_output, GRU_hidden)
-				
-				#print (GRU_output.data.numpy().shape)
-
-				# From Gru hidden, we calculate the GRU's output vector (or the prediction of next symbol) 
-				GRU_output = self.post_gru(GRU_hidden)
-				# Update last prediction
-
-				#last_y = GRU_output
-
-				# Apply softmax to prediction vector and concatenate to return_tensor
-				#GRU_output = torch.unsqueeze(GRU_output, dim = 1)
-				GRU_output = GRU_output.view(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN)
-			#----------------------------------------------------------------------------
-
-
-
+		
 			########################################################################################
-			################### UNDER CONSTRUCTION ####################################################
+			################### GRU SECTION ########################################################
 			########################################################################################
 
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
@@ -270,7 +237,7 @@ class WAP(nn.Module):
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
 			
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
-			beta_mat = beta_mat + from_a
+			beta_mat = beta_mat + alpha_mat
 			#print (return_tensor.data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
@@ -300,17 +267,16 @@ class WAP(nn.Module):
 			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
 			from_a = self.Coverage_MLP_From_A(FCN_Straight)
 			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
-
-			#---------------
-			#for batch_index in range(current_tensor_shape[0]):
-			#	#print (from_h.data[batch_index][0])
-			#	#from_a.data[batch_index] = from_a.data[batch_index] + from_h.data[batch_index][0]
-			#	print (from_a.data.numpy().shape)
-			#	print (from_h.data.numpy().shape)
-			#	from_a[batch_index] = from_a[batch_index] + from_h[batch_index][0]
-			#---------------
-			from_a = from_a + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			# --
+			F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
+			F_Straight = F_.transpose(1,3).contiguous()
+			F_Straight = F_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.Q_height)
+			from_b = self.Coverage_MLP_From_Beta(F_Straight)
+			from_b = from_b.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			
+			#---------------
+			
+			from_a = from_a + from_b + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			#---------------
 
 
@@ -338,7 +304,7 @@ class WAP(nn.Module):
 			#			print (alpha_mat.data.numpy().shape)
 			
 			#alpha_mat = alpha_mat.view(1,16, 32)
-			alpha_mat = F.tanh(alpha_mat)
+			alpha_mat = F.tanh(from_a)
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
 			
 			

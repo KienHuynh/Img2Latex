@@ -164,7 +164,7 @@ class TestingNetwork:
 			loss.backward()
 			self.grad_clip()
 			
-			self.try_print();
+#			self.try_print();
 			
 			self.optimizer.step()
 			
