@@ -168,7 +168,7 @@ class WAP(nn.Module):
 		
 		#Init Alpha and Beta Matrix
 		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
-		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]), requires_grad=True)
+		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
 #		pdb.set_trace()
 		####################################################################
 		################ GRU ITERATION #####################################
@@ -270,6 +270,7 @@ class WAP(nn.Module):
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
 			
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
+			beta_mat = beta_mat + from_a
 			#print (return_tensor.data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
@@ -309,6 +310,7 @@ class WAP(nn.Module):
 			#	from_a[batch_index] = from_a[batch_index] + from_h[batch_index][0]
 			#---------------
 			from_a = from_a + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			
 			#---------------
 
 
