@@ -16,47 +16,46 @@ import struct
 import cv2
 
 
+if False:
+	v1 = Variable(torch.FloatTensor(2,3,3).zero_(), requires_grad=True)
+	v2 = Variable(torch.FloatTensor(1,3,3).zero_(), requires_grad=True)
 
-v1 = Variable(torch.FloatTensor(2,3,3).zero_(), requires_grad=True)
-v2 = Variable(torch.FloatTensor(1,3,3).zero_(), requires_grad=True)
+	v1.data[0][0][0] = 1
+	v1.data[0][0][1] = 2
+	v1.data[0][0][2] = 3
+	v1.data[0][1][0] = 4
+	v1.data[0][1][1] = 5
+	v1.data[0][1][2] = 6
+	v1.data[0][2][0] = 7
+	v1.data[0][2][1] = 8
+	v1.data[0][2][2] = 9
 
-v1.data[0][0][0] = 1
-v1.data[0][0][1] = 2
-v1.data[0][0][2] = 3
-v1.data[0][1][0] = 4
-v1.data[0][1][1] = 5
-v1.data[0][1][2] = 6
-v1.data[0][2][0] = 7
-v1.data[0][2][1] = 8
-v1.data[0][2][2] = 9
+	v1.data[1][0][0] = 12
+	v1.data[1][0][1] = 2
+	v1.data[1][0][2] = 3
+	v1.data[1][1][0] = 4
+	v1.data[1][1][1] = 5
+	v1.data[1][1][2] = 6
+	v1.data[1][2][0] = 7
+	v1.data[1][2][1] = 8
+	v1.data[1][2][2] = 9
 
-v1.data[1][0][0] = 12
-v1.data[1][0][1] = 2
-v1.data[1][0][2] = 3
-v1.data[1][1][0] = 4
-v1.data[1][1][1] = 5
-v1.data[1][1][2] = 6
-v1.data[1][2][0] = 7
-v1.data[1][2][1] = 8
-v1.data[1][2][2] = 9
-
-v2.data[0][0][0] = 1
-v2.data[0][0][1] = 2
-v2.data[0][0][2] = 3
-v2.data[0][1][0] = 4
-v2.data[0][1][1] = 5
-v2.data[0][1][2] = 6
-v2.data[0][2][0] = 7
-v2.data[0][2][1] = 8
-v2.data[0][2][2] = 9
+	v2.data[0][0][0] = 1
+	v2.data[0][0][1] = 2
+	v2.data[0][0][2] = 3
+	v2.data[0][1][0] = 4
+	v2.data[0][1][1] = 5
+	v2.data[0][1][2] = 6
+	v2.data[0][2][0] = 7
+	v2.data[0][2][1] = 8
+	v2.data[0][2][2] = 9
 
 
-#print (v1)
-print (v2)
+	#print (v1)
+	print (v2)
 
-print (v2.repeat(2))
 
-quit()
+	quit()
 
 z = Variable(torch.FloatTensor(4,3,2,2).zero_(), requires_grad=True)
 for i in range(4):

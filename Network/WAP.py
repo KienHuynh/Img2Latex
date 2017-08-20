@@ -19,6 +19,8 @@ class WAP(nn.Module):
 		## PARAMETER DIFINITION
 		self.gru_hidden_size = 512
 		self.embed_dimension = 128
+		self.Q_height = 128
+		self.va_len = 1
 		#######################################################
 		## NETWORK STRUCTURE
 	
@@ -84,13 +86,15 @@ class WAP(nn.Module):
 		###############################################
 
 		
-		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, 1)
-		self.Coverage_MLP_From_A = nn.Linear(128, 1)
-		
-		self.Q_height = 128
+		self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, self.va_len)
+		self.Coverage_MLP_From_A = nn.Linear(128, self.va_len)
+		self.Coverage_MLP_From_Beta = nn.Linear(self.Q_height, self.va_len)
+
+		self.Va_fully_connected = nn.Linear(self.va_len, 1)
 		
 		self.conv_Q_beta = nn.Conv2d(1, self.Q_height, 3, stride=1, padding=1) 
-		self.Coverage_MLP_From_Beta = nn.Linear(self.Q_height, 1)
+		
+		
 		self.alpha_softmax = torch.nn.Softmax()
 		#self.testnn = nn.Linear(65536, 128)
 		
@@ -266,17 +270,17 @@ class WAP(nn.Module):
 			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
 			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
 			from_a = self.Coverage_MLP_From_A(FCN_Straight)
-			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 			# --
 			F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
 			F_Straight = F_.transpose(1,3).contiguous()
 			F_Straight = F_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.Q_height)
 			from_b = self.Coverage_MLP_From_Beta(F_Straight)
-			from_b = from_b.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			from_b = from_b.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 			
 			#---------------
 			
-			from_a = from_a + from_b + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			from_a = from_a + from_b + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3] * self.va_len).view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 			#---------------
 
 
@@ -305,7 +309,18 @@ class WAP(nn.Module):
 			
 			#alpha_mat = alpha_mat.view(1,16, 32)
 			alpha_mat = F.tanh(from_a)
-			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], 16, 32)
+
+			## Va fix ##
+
+			alpha_straight = alpha_mat.transpose(1,3).contiguous()
+			alpha_straight = alpha_straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.va_len)
+			alpha_mat = self.Va_fully_connected(alpha_straight)
+
+			alpha_mat = alpha_mat.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
+			
+
+
+			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			
 			
 
