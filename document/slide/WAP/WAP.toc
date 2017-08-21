@@ -1,0 +1,5 @@
+\beamer@sectionintoc {1}{Gi\IeC {\'\ohorn }i thi\IeC {\d \ecircumflex }u s\IeC {\ohorn } l\IeC {\uhorn }\IeC {\d \ohorn }c}{3}{0}{1}
+\beamer@subsectionintoc {1}{1}{a}{3}{0}{1}
+\beamer@sectionintoc {2}{C\IeC {\'\acircumflex }u tr\IeC {\'u}c h\IeC {\d \ecircumflex } th\IeC {\'\ocircumflex }ng}{4}{0}{2}
+\beamer@subsectionintoc {2}{1}{Watcher}{4}{0}{2}
+\beamer@subsectionintoc {2}{2}{Attention}{8}{0}{2}
