@@ -64,9 +64,9 @@ class TestingNetwork:
 		################################################
 		self.using_cuda = False
 		self.batch_size = 64
-		self.learning_rate = 0.0002
+		self.learning_rate = 0.001
 		self.momentum = 0.9
-		
+		self.lr_decay_base = 1/1.15
 		
 		self.model = WAP.WAP()
 
@@ -77,8 +77,8 @@ class TestingNetwork:
 			if (p.requires_grad):
 				train_params.append(p)
 				
-		self.optimizer = optim.SGD(train_params, lr=self.learning_rate, momentum=self.momentum)
-		
+		self.optimizer = optim.SGD(train_params, lr=self.learning_rate, momentum=self.momentum,
+							 weight_decay = self.lr_decay_base)
 
 		#self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 		self.NLLloss = nn.NLLLoss2d()
@@ -128,6 +128,13 @@ class TestingNetwork:
 		
 	def train(self, epoch):
 		self.model.train()
+		###################decay _learning_rate################
+#		lr = self.learning_rate
+#		lr_decay_base = 1/1.15
+#		epoch_base = 70
+#		lr_decay = lr_decay_base ** max(epoch - epoch_base, 0)
+#		lr = lr * lr_decay
+		
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
@@ -166,12 +173,13 @@ class TestingNetwork:
 			
 #			self.try_print();
 			
+#			self.optimizer.step()
 			self.optimizer.step()
-			
 			if batch_idx % 1 == 0:
-				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-						epoch, batch_idx * len(data), len(self.train_loader.dataset),
-						100. * batch_idx / len(self.train_loader), loss.data[0]))
+#				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+#						epoch, batch_idx * len(data), len(self.train_loader.dataset),
+#						100. * batch_idx / len(self.train_loader), loss.data[0]))
+				print(loss.data[0])
 				if batch_idx > 1:
 					pass
 					#break

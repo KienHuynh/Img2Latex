@@ -17,8 +17,8 @@ class WAP(nn.Module):
 	def __init__(self):
 		#######################################################
 		## PARAMETER DIFINITION
-		self.gru_hidden_size = 512
-		self.embed_dimension = 128
+		self.gru_hidden_size = 256
+		self.embed_dimension = 256
 		self.Q_height = 128
 		self.va_len = 1
 		#######################################################

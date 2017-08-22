@@ -36,7 +36,8 @@ if using_cuda and cuda_avail:
 ######### TRAINING AND TESTING ##############
 #############################################
 
-for epoch in range(10):
+for epoch in range(100):
+	
 	testnet.train(epoch + 1)
 	pass
 
