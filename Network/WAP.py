@@ -144,17 +144,17 @@ class WAP(nn.Module):
 		####################################################################
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
-		current_tensor_shape = FCN_Result.data.numpy().shape
+		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		
 		################### START GRU ########################
 
 		# Init Gru hidden Randomly
 		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
-		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).zero_())
+		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).cuda().zero_())
 
 		# Init return tensor (the prediction of mathematical Expression)
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).cuda().zero_(), requires_grad=True)
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
@@ -165,16 +165,16 @@ class WAP(nn.Module):
 		#GRU_output = Variable(return_tensor.data[:, 0, :])
 		
 		#Init Alpha and Beta Matrix
-		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
-		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
-#		pdb.set_trace()
+		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1 / num_of_block), requires_grad=True)
+		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
+#		#pdb.set_trace()
 		####################################################################
 		################ GRU ITERATION #####################################
 		####################################################################
 		
 		for RNN_iterate in range (NetWorkConfig.MAX_TOKEN_LEN - 1):
 
-			#print (alpha_mat.data.numpy().shape)
+			#print (alpha_mat.cpu().data.numpy().shape)
 		
 			# Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
 			multiplied_mat = FCN_Result.clone()
@@ -187,6 +187,7 @@ class WAP(nn.Module):
 			#-------- # alpha : batch x 16 x 32
 			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
 			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
+                        #pdb.set_trace()
 			multiplied_mat = multiplied_mat * expanded_alpha_mat
 			#--------
 			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
@@ -194,8 +195,8 @@ class WAP(nn.Module):
 			#multiplied_mat = multiplied_mat * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
-			multiplied_mat = torch.sum(multiplied_mat, dim = 2)
-			multiplied_mat = torch.sum(multiplied_mat, dim = 3)
+			multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
+			multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 			#multiplied_mat = self.testnn(multiplied_mat.view(current_tensor_shape[0], 65536))
 			
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
@@ -213,8 +214,9 @@ class WAP(nn.Module):
 			# y(t-1) = GRU_output
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
-			#print (GRU_output.data.numpy().shape)
+			#print (GRU_output.cpu().data.numpy().shape)
 			embedded = self.embeds_temp(GRU_output)
+
 
 			zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
 			zt = F.sigmoid(zt)
@@ -242,13 +244,13 @@ class WAP(nn.Module):
 			
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 			beta_mat = beta_mat + alpha_mat
-			#print (return_tensor.data.numpy().shape)
+			#print (return_tensor.cpu().data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
 			
 			#print ('-----')
-			#print (return_vector.data.numpy().shape)
-			#print (return_tensor.data.numpy().shape)
+			#print (return_vector.cpu().data.numpy().shape)
+			#print (return_tensor.cpu().data.numpy().shape)
 			
 			#ret_temp = multiplied_mat.view(1, 65536)
 
@@ -285,7 +287,7 @@ class WAP(nn.Module):
 
 
 			#alpha_mat = torch.squeeze(from_a, dim = 1)
-			#print (alpha_mat.data.numpy())
+			#print (alpha_mat.cpu().data.numpy())
 			
 		
 			
