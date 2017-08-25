@@ -79,12 +79,16 @@ class TestingNetwork:
 				
 		#self.optimizer = optim.SGD(train_params, lr=self.learning_rate, momentum=self.momentum,
 		#					 weight_decay = self.lr_decay_base)
-                self.optimizer = optim.Adam(train_params, lr=self.learning_rate)
-
+		
+		self.optimizer = optim.Adam(train_params, lr=self.learning_rate)
 		#self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
 		self.NLLloss = nn.NLLLoss2d()
 		self.NLLloss1 = nn.NLLLoss()
-		self.criterion = nn.CrossEntropyLoss(ignore_index=1)
+		
+		if NetWorkConfig.CURRENT_MACHINE == 0:
+			self.criterion = nn.CrossEntropyLoss(ignore_index=1)
+		else:
+			self.criterion = nn.CrossEntropyLoss()
 		
 	def grad_clip(self, max_grad = 0.01):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
@@ -122,6 +126,8 @@ class TestingNetwork:
 			
 	def setCudaState(self, state = True):
 		self.using_cuda = state
+
+		self.model.setCuda(state)
 		
 	def setData(self, train, test):
 		self.train_loader = train
@@ -135,15 +141,15 @@ class TestingNetwork:
 #		epoch_base = 70
 #		lr_decay = lr_decay_base ** max(epoch - epoch_base, 0)
 #		lr = lr * lr_decay
-	        	
+
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
 			if (epoch % 100 == 0):
-                            self.learning_rate = self.learning_rate/5
-                            self.optimizer.param_groups[0]['lr'] = self.learning_rate
-                            print(self.optimizer.param_groups[0]['lr'])
-                        data, target = Variable(data.float()), Variable(target.long())
+				self.learning_rate = self.learning_rate/5
+				self.optimizer.param_groups[0]['lr'] = self.learning_rate
+				print(self.optimizer.param_groups[0]['lr'])
+			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
 			#print('output', output)
@@ -156,10 +162,10 @@ class TestingNetwork:
 				#			output.data[b_id,s_id, :] = 0
 				#			output.data[b_id,s_id, 0] = 1
 				#pdb.set_trace()			
-                                #target = target[:,0:49]
-                                target.contiguous()
-                                #output = output[:,0:50]
-                                output.contiguous()
+				#target = target[:,0:49]
+				target.contiguous()
+				#output = output[:,0:50]
+				output.contiguous()
 				target = target.view(NetWorkConfig.BATCH_SIZE * 50)
 				output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
 			        
@@ -179,8 +185,9 @@ class TestingNetwork:
 				#########################
 			loss.backward()
 			self.grad_clip()
-		        if (epoch % 10 == 0):
-                                pdb.set_trace()
+			if (epoch % 10 == 0):
+				pass
+				#pdb.set_trace()
 #			self.try_print();
 			
 			self.optimizer.step() 

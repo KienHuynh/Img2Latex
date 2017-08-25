@@ -10,7 +10,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = True
+using_cuda = False
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -36,7 +36,7 @@ if using_cuda and cuda_avail:
 ######### TRAINING AND TESTING ##############
 #############################################
 
-for epoch in range(1000):
+for epoch in range(1):
 	
 	testnet.train(epoch + 1)
 	pass

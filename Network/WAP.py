@@ -15,6 +15,8 @@ import math
 
 class WAP(nn.Module):
 	def __init__(self):
+		self.using_cuda = False
+
 		#######################################################
 		## PARAMETER DIFINITION
 		self.gru_hidden_size = 256
@@ -98,6 +100,9 @@ class WAP(nn.Module):
 		self.alpha_softmax = torch.nn.Softmax()
 		#self.testnn = nn.Linear(65536, 128)
 		
+	def setCuda(self, state):
+		self.using_cuda = state
+
 	def setGroundTruth(self, GT):
 		self.GT = GT
 		
@@ -139,22 +144,38 @@ class WAP(nn.Module):
 		
 		FCN_Result = F.relu(self.pool_4(x))
 
-		####################################################################
-		################ GRU BLOCK #########################################
-		####################################################################
 
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
+		################ DEFINITION ########################################
+
+		if self.using_cuda:
+			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
+			GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).cuda().zero_())
+			# Init return tensor (the prediction of mathematical Expression)
+			return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).cuda().zero_(), requires_grad=True)
+			#Init Alpha and Beta Matrix
+			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1 / num_of_block), requires_grad=True)
+			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
+		else:
+			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
+			GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).zero_())
+			# Init return tensor (the prediction of mathematical Expression)
+			return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+			#Init Alpha and Beta Matrix
+			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
+			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
+
+		####################################################################
+		################ GRU BLOCK #########################################
+		####################################################################
+
+		
 		
 		################### START GRU ########################
 
-		# Init Gru hidden Randomly
-		#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
-		GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).cuda().zero_())
-
-		# Init return tensor (the prediction of mathematical Expression)
-		return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).cuda().zero_(), requires_grad=True)
+		
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
@@ -164,9 +185,7 @@ class WAP(nn.Module):
 		GRU_output = torch.squeeze(return_tensor, dim = 1)
 		#GRU_output = Variable(return_tensor.data[:, 0, :])
 		
-		#Init Alpha and Beta Matrix
-		alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1 / num_of_block), requires_grad=True)
-		beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
+		
 #		#pdb.set_trace()
 		####################################################################
 		################ GRU ITERATION #####################################
@@ -187,7 +206,7 @@ class WAP(nn.Module):
 			#-------- # alpha : batch x 16 x 32
 			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
 			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
-                        #pdb.set_trace()
+			#pdb.set_trace()
 			multiplied_mat = multiplied_mat * expanded_alpha_mat
 			#--------
 			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
@@ -195,8 +214,12 @@ class WAP(nn.Module):
 			#multiplied_mat = multiplied_mat * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
-			multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
-			multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
+			if NetWorkConfig.CURRENT_MACHINE == 0:
+				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
+				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
+			else:
+				multiplied_mat = torch.sum(multiplied_mat, dim = 2)
+				multiplied_mat = torch.sum(multiplied_mat, dim = 3)
 			#multiplied_mat = self.testnn(multiplied_mat.view(current_tensor_shape[0], 65536))
 			
 			multiplied_mat = multiplied_mat.view(current_tensor_shape[0], 128)
