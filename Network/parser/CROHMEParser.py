@@ -731,12 +731,15 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 		temp_GT = getGT.makeOneshotGT(filedata[0], './mathsymbolclass.txt')
 		#print (filedata[0])
 	   
+		print (len(temp_GT))
+
 		if len(temp_result) == 0:
 			print ('unable to parse ' + file)
 		else:
 			ParseResult.append(temp_result)
 			GTResult.append(temp_GT)
 	
+	#print (np.asarray(GTResult).shape)
 	return np.asarray(ParseResult), np.asarray(GTResult)
 
 	#np.save(real_output_path_Target, GTResult)
@@ -747,7 +750,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 #ParseFolder('./../data/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
-ParseFolderToBinary2('./../data/CROHME/test/', 100, output_path = './', padding = 50)
+#ParseFolderToBinary2('./../data/CROHME/test/', 100, output_path = './', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 

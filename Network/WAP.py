@@ -352,20 +352,4 @@ class WAP(nn.Module):
 		#return torch.unsqueeze(return_tensor, dim = 1)
 		# Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
 		return return_tensor
-
-class mGRU(nn.Module):
-	def __init__(self, embedding_dim, hidden_size, vocab_size, ct_size, num_layers = 1):
-		super(mGRU, self).__init__()
-#		self.input_size = input_size
-		self.embedding_dim = embedding_dim
-		self.hidden_size = hidden_size
-		self.vocal_size = vocab_size
-		self.num_layers = num_layers
-		
-		gate_size = 3*hidden_size
-		for layer in range(num_layers):
-			layer_input_size = embedding_dim if layer == 0 else hidden_size
-			w_ih = Parameter(torch.tensor(gate_size, layer_input_size))
-			w_hh = Parameter(torch.tensor(gate_size, hidden_size))
-			
 			
