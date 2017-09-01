@@ -56,9 +56,10 @@ class Loader:
 		train_target = numpy.load(pathtrain_target)
 		test_target = numpy.ones(len(test_set))
 		
-		
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.int64)))
-		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.int64)))
+		print (train_set.shape)
+		print (train_target.shape)
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
 
 		return Tensor_train, Tensor_test
 
@@ -106,8 +107,9 @@ class loadDatasetFileByFile:
 			print (dataset.shape)
 			print (target.shape)
 
-			dataset_dat, target_dat = self.loader.generateTensorDatasetFromCROHMENumpy(dataset, target)
-			return dataset_dat, target_dat
+			dataset_dat = self.loader.generateTensorDatasetFromCROHMENumpy(dataset, target)
+			
+			return dataset_dat
 		
 		#except Exception as e:
 		#	print ('Did you forget call \'init\'?')
@@ -151,7 +153,7 @@ class loadDatasetFileByFile:
 
 z = loadDatasetFileByFile()
 z.init()
-z.getNextDataset(10)
+z.getNextDataset(4)
 
 
 #loader = Loader()
