@@ -9,7 +9,7 @@ import numpy
 
 from torch.nn import Parameter
 import NetWorkConfig
-import getGT
+import getGTutil
 import pdb
 import math
 
@@ -179,7 +179,7 @@ class WAP(nn.Module):
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
-		return_tensor.data[:, 0, getGT.word_to_id['<s>']] = 1
+		return_tensor.data[:, 0, getGTutil.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
 		GRU_output = torch.squeeze(return_tensor, dim = 1)

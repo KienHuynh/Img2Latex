@@ -26,11 +26,15 @@ train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle
 test_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
 ############
 
+loader = DL.loadDatasetFileByFile()
+loader.init()
+
+
 
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.setData(train_loader, test_loader)
+
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -40,10 +44,27 @@ if using_cuda and cuda_avail:
 ######### TRAINING AND TESTING ##############
 #############################################
 
+br = 0
+
 for epoch in range(1):
 	
-	testnet.train(epoch + 1)
-	pass
+	while True:
+		train_data = loader.getNextDataset(batch_size)
+
+		if train_data == False:
+			break
+
+		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+
+		testnet.setData(train_loader, 0)
+
+		testnet.train(epoch + 1)
+		
+		br = br + 1
+		if br == 10:
+			break
+
+		pass
 
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()

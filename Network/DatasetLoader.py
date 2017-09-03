@@ -99,18 +99,18 @@ class loadDatasetFileByFile:
 
 					if len(self.parent_path) == 0:
 						print ('no more data')
-						return False, False
+						return False
 			#print (to_parse_list)
 
 			dataset, target = CROHMEParser.ParseList(to_parse_list)
 
-			print (dataset.shape)
-			print (target.shape)
+			#print (dataset.shape)
+			#print (target.shape)
 
 			dataset_dat = self.loader.generateTensorDatasetFromCROHMENumpy(dataset, target)
 			
 			return dataset_dat
-		
+		return False
 		#except Exception as e:
 		#	print ('Did you forget call \'init\'?')
 		#	print (e)
@@ -151,10 +151,10 @@ class loadDatasetFileByFile:
 		return parent_path, inkml_list, folder_size, param_list
 
 
-z = loadDatasetFileByFile()
-z.init()
-z.getNextDataset(4)
-
+#z = loadDatasetFileByFile()
+#z.init()
+#aa = z.getNextDataset(10)
+#print (aa)
 
 #loader = Loader()
 #loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data_mini.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target_mini.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')

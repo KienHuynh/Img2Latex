@@ -731,7 +731,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 		temp_GT = getGT.makeOneshotGT(filedata[0], './mathsymbolclass.txt')
 		#print (filedata[0])
 	   
-		print (len(temp_GT))
+		#print (len(temp_GT))
 
 		if len(temp_result) == 0:
 			print ('unable to parse ' + file)
