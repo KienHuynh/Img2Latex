@@ -111,3 +111,5 @@ sequence_models_tutorial.py
 /tool/ParseResult/CROHMEBLOCK_Target_mini.npy
 /tool/ParseResult/formulaire037-equation073.jpg
 /tool/ParseResult/formulaire038-equation000.jpg
+/Network/parser/NetWorkConfig.py
+/Network/parser/mathsymbolclass.txt

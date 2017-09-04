@@ -63,9 +63,7 @@ for epoch in range(1):
 		br = br + 1
 		if br == 10:
 			break
-
-		pass
-
+		break
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 

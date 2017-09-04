@@ -68,6 +68,7 @@ def touchGT(path):
 
 
 def getRoot(path):
+	#print (path)
 	assert(os.path.exists(path))
 	root = r.parse(path).getroot()
 	return root
@@ -332,7 +333,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 	
 	
    
-makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 
 

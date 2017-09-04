@@ -9,9 +9,13 @@ import numpy
 
 from torch.nn import Parameter
 import NetWorkConfig
-import getGTutil
+
 import pdb
 import math
+
+import sys
+sys.path.insert(0, './parser')
+import getGT
 
 class WAP(nn.Module):
 	def __init__(self):
@@ -100,6 +104,9 @@ class WAP(nn.Module):
 		self.alpha_softmax = torch.nn.Softmax()
 		#self.testnn = nn.Linear(65536, 128)
 		
+
+		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
+
 	def setCuda(self, state):
 		self.using_cuda = state
 
@@ -179,7 +186,7 @@ class WAP(nn.Module):
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
-		return_tensor.data[:, 0, getGTutil.word_to_id['<s>']] = 1
+		return_tensor.data[:, 0, self.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
 		GRU_output = torch.squeeze(return_tensor, dim = 1)

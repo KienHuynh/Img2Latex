@@ -726,9 +726,10 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 	ParseResult = []
 	GTResult = []
 	
+
 	for filedata in toparse_list:
 		temp_result = parseOfficialV_3(filedata[0], filedata[1][0], padding = padding)
-		temp_GT = getGT.makeOneshotGT(filedata[0], './mathsymbolclass.txt')
+		temp_GT = getGT.makeOneshotGT(filedata[0], './parser/mathsymbolclass.txt')
 		#print (filedata[0])
 	   
 		#print (len(temp_GT))
@@ -745,12 +746,13 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 	#np.save(real_output_path_Target, GTResult)
 	#np.save(real_output_path_Data, ParseResult)
 
-#parseOfficialV_3('./../data/TrainINKML/expressmatch/101_fujita.inkml')
+#parseOfficialV_3('./../data/Tra inINKML/expressmatch/101_fujita.inkml')
 #parseFileSpecial('./TrainINKML/TrainINKML/MfrDB/MfrDB0104.inkml', 'img.jpg')
 #ParseFolder('./../data/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
-#ParseFolderToBinary2('./../data/CROHME/test/', 100, output_path = './', padding = 50)
+#ParseFolderToBinary2('./testFolder/', 1, output_path = './', padding = 50)
+#ParseList([('./testFolder/MfrDB0104.inkml', (1,0) )])
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 
