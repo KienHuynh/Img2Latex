@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 import numpy
 import struct
-import cv2
+
 
 ##########################################################
 ## parameter:

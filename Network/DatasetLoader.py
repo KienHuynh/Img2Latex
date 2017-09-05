@@ -58,8 +58,8 @@ class Loader:
 		
 		print (train_set.shape)
 		print (train_target.shape)
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.long)))
-		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.long)))
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.int64)))
+		Tensor_test = self.getTensorDataset(torch.from_numpy(test_set), torch.from_numpy(test_target.astype(numpy.int64)))
 
 		return Tensor_train, Tensor_test
 
@@ -116,11 +116,11 @@ class loadDatasetFileByFile:
 		#	print (e)
 		#	return False, False
 
-	def init(self, path = "./../data/TESTSITE/"):
+	def init(self, path = "./../data/TrainINKML/"):
 		self.parent_path, self.inkml_list, self.folder_size, self.param_list = self.getFileList(path)
 		self.num_of_folder = len(self.parent_path)
 
-	def getFileList(self, path = "./../data/TESTSITE/"):
+	def getFileList(self, path = "./../data/TrainINKML/"):
 		inkml_list = []
 		parent_path = []
 		folder_size = []

@@ -166,8 +166,8 @@ class TestingNetwork:
 				target.contiguous()
 				#output = output[:,0:50]
 				output.contiguous()
-				target = target.view(NetWorkConfig.BATCH_SIZE * 50)
-				output = output.view(NetWorkConfig.BATCH_SIZE * 50, NetWorkConfig.NUM_OF_TOKEN)
+				target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
+				output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
 			        
 				loss = self.criterion(output, target)
 				

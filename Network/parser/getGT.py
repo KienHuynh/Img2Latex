@@ -7,13 +7,14 @@ Created on Thu Aug  3 21:30:37 2017
 """
 
 import sys
-sys.path.insert(0, './../Network')
+sys.path.insert(0, './../')
 
 import numpy as np
 import xml.etree.ElementTree as r
 import torch
 from torch.autograd import Variable
 import os
+from os import walk
 import re
 import collections
 import NetWorkConfig
@@ -45,6 +46,12 @@ def replaceW2ID(data, word_to_id):
 	#data = readSymbolfile(path)
 	return [word_to_id[word] for word in data if word in word_to_id]
 
+def preplaceW2ID(data, word_to_id):
+	for word in data:
+		if word in word_to_id:
+			pass
+		else:
+			print('miss word', word)
 
 def touchGT(path):
 	assert(os.path.exists(path))
@@ -68,7 +75,6 @@ def touchGT(path):
 
 
 def getRoot(path):
-	#print (path)
 	assert(os.path.exists(path))
 	root = r.parse(path).getroot()
 	return root
@@ -78,7 +84,19 @@ def modifiedText(text):
 	standard = ['phi','pi','theta','alpha','beta','gamma','infty','sigma','Delta',
 				'lamda','mu','pm','sin','cos','neq','leq','gt','sqrt','div','times',
 				'sum','log','tan','ldots','geq','rightarrow','lim','int','exists',
-				'forall','in','prime']
+				'forall','in','prime','lt','ne','cdot','cdots']
+	
+	if text == '<':
+		text = 'lt'
+	elif text =='>':
+		text = 'gt'
+	elif text == 'im':
+		text = 'lim'
+	elif text == '.':
+		text = 'cdot'
+	elif text == 'ctdot':
+		text = 'cdots'
+		
 	if text in standard:
 		standtext = '\\'+text
 	else:
@@ -216,16 +234,28 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	for i in range(need_to_pad):
 		text.append('$P')
 	#print ('gt', len(text))
-	
+	preplaceW2ID(text, word_to_id)
 	vector = replaceW2ID(text, word_to_id)
-	#print('vector', vector)
+#	print('vector', vector)
 	
 	#print (vector)
-	#tensor = torch.LongTensor(vector)
-	#print('vector',Variable(tensor))
-	#return Variable(tensor)
+	tensor = torch.LongTensor(vector)
+#	print('vector',Variable(tensor))
+	return Variable(tensor)
 	return vector
 
+def getGTfromFolder(input_path, path_to_symbol):
+	i=0
+	for (dirpath, dirnames, filenames) in walk(input_path):
+		for file in filenames:
+			if not file.endswith('lg'):
+				print (input_path + file)
+				makeOneshotGT(input_path + file, path_to_symbol)
+				i = i+1
+#			if i == 100:
+#				break
+			
+		break
 
 def prepareTarget(vector, vocab_size = -1):
 	if vocab_size == -1:
@@ -335,6 +365,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
    
 #makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
+getGTfromFolder('./../../data/TrainINKML/MathBrush/', './mathsymbolclass.txt')
 
 
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
