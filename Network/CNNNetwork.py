@@ -185,11 +185,10 @@ class TestingNetwork:
 				#########################
 			loss.backward()
 			self.grad_clip()
-			if (epoch % 10 == 0):
+			if (epoch % 20 == 0):
 				pass
-				#pdb.set_trace()
+#				pdb.set_trace()
 #			self.try_print();
-			
 			self.optimizer.step() 
                         
 			if batch_idx % 1 == 0:

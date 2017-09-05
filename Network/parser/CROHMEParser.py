@@ -730,6 +730,8 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 	for filedata in toparse_list:
 		temp_result = parseOfficialV_3(filedata[0], filedata[1][0], padding = padding)
 		temp_GT = getGT.makeOneshotGT(filedata[0], './parser/mathsymbolclass.txt')
+		print('len', len(temp_GT))
+		
 		#print (filedata[0])
 	   
 		#print (len(temp_GT))

@@ -239,9 +239,9 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 #	print('vector', vector)
 	
 	#print (vector)
-	tensor = torch.LongTensor(vector)
+#	tensor = torch.LongTensor(vector)
 #	print('vector',Variable(tensor))
-	return Variable(tensor)
+#	return Variable(tensor)
 	return vector
 
 def getGTfromFolder(input_path, path_to_symbol):
@@ -252,8 +252,8 @@ def getGTfromFolder(input_path, path_to_symbol):
 				print (input_path + file)
 				makeOneshotGT(input_path + file, path_to_symbol)
 				i = i+1
-#			if i == 100:
-#				break
+			if i == 10:
+				break
 			
 		break
 
@@ -363,9 +363,9 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 	
 	
    
-#makeOneshotGT('./../data/TrainINKML/expressmatch/101_alfonso.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB3905.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
-getGTfromFolder('./../../data/TrainINKML/MathBrush/', './mathsymbolclass.txt')
+#getGTfromFolder('./../../data/TrainINKML/MfrDB/', './mathsymbolclass.txt')
 
 
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')

@@ -46,7 +46,7 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(15):
+for epoch in range(2):
 	
 	while True:
 		train_data = loader.getNextDataset(batch_size)
@@ -61,9 +61,9 @@ for epoch in range(15):
 		testnet.train(epoch + 1)
 		
 		br = br + 1
-		if br == 10:
+		if br == 3:
 			break
-		break
+#		break
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
