@@ -1,5 +1,5 @@
 MAX_TOKEN_LEN = 90
-NUM_OF_TOKEN = 113
+NUM_OF_TOKEN = 114
 BATCH_SIZE = 4
 
 # 0 : Kien's computer

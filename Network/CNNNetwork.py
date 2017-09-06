@@ -12,6 +12,8 @@ import WAP
 
 import NetWorkConfig
 import pdb
+
+import matplotlib.pyplot as plt
 class Net(nn.Module):
 	
 	def __init__(self):
@@ -58,7 +60,8 @@ class Net(nn.Module):
 class TestingNetwork:
 	def __init__(self):
 		print ('network init')
-
+		self.all_loss = []
+		self.ite = 0
 		################################################
 		########## ATTRIBUTE INIT ######################
 		################################################
@@ -190,12 +193,18 @@ class TestingNetwork:
 #				pdb.set_trace()
 #			self.try_print();
 			self.optimizer.step() 
-                        
+			self.ite += 1
+			self.all_loss.append(loss.data.numpy())
+			plt.ion()
+
 			if batch_idx % 1 == 0:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('Epoch %d: %.5f' % (epoch, loss.data[0]))
+				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
+				plt.clf()
+				plt.plot(self.all_loss)
+				plt.draw()
 				if batch_idx > 1:
 					pass
 					#break
