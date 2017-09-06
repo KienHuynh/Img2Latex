@@ -96,6 +96,8 @@ def modifiedText(text):
 		text = 'cdot'
 	elif text == 'ctdot':
 		text = 'cdots'
+	elif text == '\\ctdot':
+		text = 'cdots'
 		
 	if text in standard:
 		standtext = '\\'+text
@@ -135,6 +137,20 @@ def parseGT(root, text, ignoreElems):
 			for child in root:
 				parseGT(child, text, ignoreElems)
 			text.append('}')
+		elif root.tag[index:] == 'mroot':
+			n = 1
+			text.append('\\sqrt')
+			for child in root:
+				if n == 2:
+					text.append('{')
+					parseGT(child, text, ignoreElems)
+					text.append('}')
+				else:
+					text.append('[')
+					parseGT(child, text, ignoreElems)
+					text.append(']')
+				n += 1
+			
 		elif root.tag[index:] == 'mfrac':
 			text.append('\\frac')
 			for child in root:
@@ -252,8 +268,8 @@ def getGTfromFolder(input_path, path_to_symbol):
 				print (input_path + file)
 				makeOneshotGT(input_path + file, path_to_symbol)
 				i = i+1
-			if i == 10:
-				break
+#			if i == 10:
+#				break
 			
 		break
 
@@ -365,7 +381,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
    
 #makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB3905.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
-#getGTfromFolder('./../../data/TrainINKML/MfrDB/', './mathsymbolclass.txt')
+#getGTfromFolder('./../../data/miniTrainINKML/extension/', './mathsymbolclass.txt')
 
 
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')

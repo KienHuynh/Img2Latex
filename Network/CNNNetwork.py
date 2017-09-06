@@ -12,53 +12,14 @@ import WAP
 
 import NetWorkConfig
 import pdb
-class Net(nn.Module):
-	
-	def __init__(self):
-		super(Net, self).__init__()
-		self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-		self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-		self.conv2_drop = nn.Dropout2d()
-		self.fc1 = nn.Linear(320, 50)
-		self.fc2 = nn.Linear(50, 10)
-		
-	def forward(self, x):
-		x = F.relu(F.max_pool2d(self.conv1(x), 2))
-		x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-		
-		x = x.view(-1, 320)
-		#
-		x = F.relu(self.fc1(x))
-		x = F.dropout(x, training=self.training)
-		x = self.fc2(x)
-		return F.log_softmax(x)
-	
-	def __init__(self):
-		super(Net, self).__init__()
-		self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-		self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-		self.conv2_drop = nn.Dropout2d()
-		self.fc1 = nn.Linear(320, 50)
-		self.fc2 = nn.Linear(50, 10)
-		
-	def forward(self, x):
-		x = F.relu(F.max_pool2d(self.conv1(x), 2))
-		x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-		x = x.view(-1, 320)
-		#
-		
-		x = F.relu(self.fc1(x))
-		x = F.dropout(x, training=self.training)
-		x = self.fc2(x)
-		return F.log_softmax(x)
 
-
-
+import matplotlib.pyplot as plt
 
 class TestingNetwork:
 	def __init__(self):
 		print ('network init')
-
+		self.all_loss = []
+		self.ite = 0
 		################################################
 		########## ATTRIBUTE INIT ######################
 		################################################
@@ -143,6 +104,9 @@ class TestingNetwork:
 #		lr = lr * lr_decay
 
 		for batch_idx, (data, target) in enumerate(self.train_loader):
+
+			self.model.setGroundTruth(target.numpy())
+
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
 			if (epoch % 100 == 0):
@@ -172,17 +136,8 @@ class TestingNetwork:
 				loss = self.criterion(output, target)
 				
 			else :
-				
-				#######################3			
+				pass
 
-				#print (output)
-				tar = Variable(torch.LongTensor(1).zero_(), requires_grad=False)
-				tar.data[0] = 1
-				#print (output)
-				#tar.data[1] = 1
-				loss = self.criterion(output, tar)
-
-				#########################
 			loss.backward()
 			self.grad_clip()
 			if (epoch % 20 == 0):
@@ -190,12 +145,18 @@ class TestingNetwork:
 #				pdb.set_trace()
 #			self.try_print();
 			self.optimizer.step() 
-                        
+			self.ite += 1
+			self.all_loss.append(loss.data.numpy())
+			plt.ion()
+
 			if batch_idx % 1 == 0:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('Epoch %d: %.5f' % (epoch, loss.data[0]))
+				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
+				plt.clf()
+				plt.plot(self.all_loss)
+				plt.draw()
 				if batch_idx > 1:
 					pass
 					#break

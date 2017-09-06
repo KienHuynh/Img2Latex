@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 import numpy
 import struct
-import cv2
+import pdb
 
 ##########################################################
 ## parameter:
@@ -729,7 +729,10 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 
 	for filedata in toparse_list:
 		temp_result = parseOfficialV_3(filedata[0], filedata[1][0], padding = padding)
-		temp_GT = getGT.makeOneshotGT(filedata[0], './parser/mathsymbolclass.txt')
+		try:
+			temp_GT = getGT.makeOneshotGT(filedata[0], './parser/mathsymbolclass.txt')
+		except xml.etree.ElementTree.ParseError as e:
+			pdb.set_trace()
 		print('len', len(temp_GT))
 		
 		#print (filedata[0])
@@ -754,7 +757,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/MfrDB/', 0.8, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolderToBinary2('./testFolder/', 1, output_path = './', padding = 50)
-#ParseList([('./testFolder/MfrDB0104.inkml', (1,0) )])
+#ParseList([('./../../data/TrainINKML/MfrDB/MfrDB0104.inkml', (1,0) )])
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 

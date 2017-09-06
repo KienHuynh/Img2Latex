@@ -17,7 +17,7 @@ cuda_avail = torch.cuda.is_available()
 ######### DATA LOADING ######################
 #############################################
 
-loader = DL.Loader()
+#loader = DL.Loader()
 #train, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
 #train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data1.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target1.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
 #train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data_M.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target_M.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
@@ -27,7 +27,6 @@ loader = DL.Loader()
 ############
 
 loader = DL.loadDatasetFileByFile()
-loader.init('./../data/TESTSITE2/')
 
 
 
@@ -46,8 +45,9 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(2):
-	
+for epoch in range(1):
+	loader.init(NC.DATASET_PATH)
+	testnet.ite = 0
 	while True:
 		train_data = loader.getNextDataset(batch_size)
 
@@ -60,9 +60,11 @@ for epoch in range(2):
 
 		testnet.train(epoch + 1)
 		
-		br = br + 1
-		if br == 3:
-			break
+		break
+
+#		br = br + 1
+#		if br == 3:
+#			break
 #		break
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()

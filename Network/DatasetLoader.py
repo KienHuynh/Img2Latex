@@ -84,11 +84,21 @@ class loadDatasetFileByFile:
 		
 		#try:
 		if True:
-			for i in range(batch_size):
+			while(len(to_parse_list)<batch_size):
+#			for i in range(batch_size):
 				choose_index = random.randint(0, self.num_of_folder - 1)
 				inkml_index = random.randint(0, self.folder_size[choose_index])
+				
+				# TODO Ngoc: Nen xoa cac file lg thi hon, dung co compare nay vi no se lam giam toc do train
+				#files = self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index]
+				#if not files.endswith('.lg'):
+				#	to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
 
 				to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+				#print (to_parse_list)
+
+				del self.inkml_list[choose_index][inkml_index]
+				
 				self.folder_size[choose_index] = self.folder_size[choose_index] - 1
 				if self.folder_size[choose_index] == -1:
 					self.num_of_folder = self.num_of_folder - 1
@@ -97,9 +107,9 @@ class loadDatasetFileByFile:
 					del self.folder_size[choose_index]
 					del self.param_list[choose_index]
 
-					if len(self.parent_path) == 0:
-						print ('no more data')
-						return False
+				if len(self.parent_path) == 0:
+					print ('no more data')
+					return False
 			#print (to_parse_list)
 
 			dataset, target = CROHMEParser.ParseList(to_parse_list)
@@ -116,11 +126,11 @@ class loadDatasetFileByFile:
 		#	print (e)
 		#	return False, False
 
-	def init(self, path = "./../data/TrainINKML/"):
+	def init(self, path = "./../data/miniTrainINKML/"):
 		self.parent_path, self.inkml_list, self.folder_size, self.param_list = self.getFileList(path)
 		self.num_of_folder = len(self.parent_path)
 
-	def getFileList(self, path = "./../data/TrainINKML/"):
+	def getFileList(self, path = "./../data/miniTrainINKML/"):
 		inkml_list = []
 		parent_path = []
 		folder_size = []
