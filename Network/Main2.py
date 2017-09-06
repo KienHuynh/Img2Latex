@@ -27,7 +27,7 @@ loader = DL.Loader()
 ############
 
 loader = DL.loadDatasetFileByFile()
-loader.init()
+loader.init('./../data/TESTSITE2/')
 
 
 
