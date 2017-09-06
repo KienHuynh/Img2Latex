@@ -137,6 +137,20 @@ def parseGT(root, text, ignoreElems):
 			for child in root:
 				parseGT(child, text, ignoreElems)
 			text.append('}')
+		elif root.tag[index:] == 'mroot':
+			n = 1
+			text.append('\\sqrt')
+			for child in root:
+				if n == 2:
+					text.append('{')
+					parseGT(child, text, ignoreElems)
+					text.append('}')
+				else:
+					text.append('[')
+					parseGT(child, text, ignoreElems)
+					text.append(']')
+				n += 1
+			
 		elif root.tag[index:] == 'mfrac':
 			text.append('\\frac')
 			for child in root:
@@ -235,10 +249,10 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	
 	for i in range(need_to_pad):
 		text.append('$P')
-	#print ('gt', len(text))
+	print ('gt', text)
 	preplaceW2ID(text, word_to_id)
 	vector = replaceW2ID(text, word_to_id)
-#	print('vector', vector)
+	print('vector', vector)
 	
 	#print (vector)
 #	tensor = torch.LongTensor(vector)
@@ -365,7 +379,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 	
 	
    
-#makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB0104.inkml', './mathsymbolclass.txt')
+makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB0104.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 #getGTfromFolder('./../../data/miniTrainINKML/extension/', './mathsymbolclass.txt')
 
