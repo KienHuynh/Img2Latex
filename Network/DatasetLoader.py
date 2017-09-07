@@ -12,6 +12,7 @@ import cv2
 from random import shuffle
 import os
 import random
+import pdb
 
 import sys
 sys.path.insert(0, 'parser')
@@ -86,6 +87,11 @@ class loadDatasetFileByFile:
 		if True:
 			while(len(to_parse_list)<batch_size):
 #			for i in range(batch_size):
+				if len(self.parent_path) == 0:
+					print ('no more data')
+					return False
+				
+#				pdb.set_trace()
 				choose_index = random.randint(0, self.num_of_folder - 1)
 				inkml_index = random.randint(0, self.folder_size[choose_index])
 				
@@ -107,11 +113,9 @@ class loadDatasetFileByFile:
 					del self.folder_size[choose_index]
 					del self.param_list[choose_index]
 
-				if len(self.parent_path) == 0:
-					print ('no more data')
-					return False
+				
 			#print (to_parse_list)
-
+#			pdb.set_trace()
 			dataset, target = CROHMEParser.ParseList(to_parse_list)
 
 			#print (dataset.shape)
