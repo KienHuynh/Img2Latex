@@ -761,7 +761,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 #ParseFolder('./TrainINKML/TrainINKML/HAMEX/', 100, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/expressmatch/', 1, verlen = 2)
 
-#sizeStatistic('./TrainINKML/TrainINKML/MfrDB/', 0.8)
+#sizeStatistic('./../../Data/TestINKMLGT', 0.08)
 
 # expressmatch
 # HAMEX: 100
