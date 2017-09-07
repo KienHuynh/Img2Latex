@@ -86,8 +86,9 @@ class TestingNetwork:
 			
 			
 	def setCudaState(self, state = True):
+		
 		self.using_cuda = state
-
+		print('using cudaa', self.using_cuda)
 		self.model.setCuda(state)
 		
 	def setData(self, train, test):
@@ -108,6 +109,7 @@ class TestingNetwork:
 			self.model.setGroundTruth(target.numpy())
 
 			if self.using_cuda:
+				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
 			if (self.ite % 100 == 99):
 				self.learning_rate = self.learning_rate/5
