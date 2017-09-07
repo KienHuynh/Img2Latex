@@ -47,7 +47,7 @@ br = 0
 
 for epoch in range(1):
 	loader.init(NC.DATASET_PATH)
-	testnet.ite = 0
+#	testnet.ite = 0
 	while True:
 		train_data = loader.getNextDataset(batch_size)
 
@@ -60,7 +60,7 @@ for epoch in range(1):
 
 		testnet.train(epoch + 1)
 		
-		break
+#		break
 
 #		br = br + 1
 #		if br == 3:
