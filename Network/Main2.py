@@ -26,8 +26,7 @@ cuda_avail = torch.cuda.is_available()
 #test_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
 ############
 
-#loader = DL.loadDatasetFileByFile()
-#loader.init()
+loader = DL.loadDatasetFileByFile()
 
 
 
@@ -46,10 +45,8 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(2):
-	loader = DL.Loader()
-	loader = DL.loadDatasetFileByFile()
-	loader.init()
+for epoch in range(1):
+	loader.init(NC.DATASET_PATH)
 	testnet.ite = 0
 	while True:
 		train_data = loader.getNextDataset(batch_size)
@@ -63,6 +60,8 @@ for epoch in range(2):
 
 		testnet.train(epoch + 1)
 		
+		break
+
 #		br = br + 1
 #		if br == 3:
 #			break

@@ -249,10 +249,10 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	
 	for i in range(need_to_pad):
 		text.append('$P')
-	print ('gt', text)
+	#print ('gt', len(text))
 	preplaceW2ID(text, word_to_id)
 	vector = replaceW2ID(text, word_to_id)
-	print('vector', vector)
+#	print('vector', vector)
 	
 	#print (vector)
 #	tensor = torch.LongTensor(vector)
@@ -379,7 +379,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 	
 	
    
-makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB0104.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB3905.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
 #getGTfromFolder('./../../data/miniTrainINKML/extension/', './mathsymbolclass.txt')
 

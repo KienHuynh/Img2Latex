@@ -88,9 +88,14 @@ class loadDatasetFileByFile:
 #			for i in range(batch_size):
 				choose_index = random.randint(0, self.num_of_folder - 1)
 				inkml_index = random.randint(0, self.folder_size[choose_index])
-				files = self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index]
-				if not files.endswith('.lg'):
-					to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+				
+				# TODO Ngoc: Nen xoa cac file lg thi hon, dung co compare nay vi no se lam giam toc do train
+				#files = self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index]
+				#if not files.endswith('.lg'):
+				#	to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+
+				to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+				#print (to_parse_list)
 
 				del self.inkml_list[choose_index][inkml_index]
 				
