@@ -113,9 +113,9 @@ class WAP(nn.Module):
 	def setGroundTruth(self, GT):
 		self.GT = GT
 		
-
-		
 	def forward(self, x):
+
+		print (self.training)
 
 		####################################################################
 		################ FCN BLOCK #########################################
@@ -186,12 +186,11 @@ class WAP(nn.Module):
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
-		return_tensor.data[:, 0, self.word_to_id['<s>']] = 1
+		return_tensor.data[:, 0, self.word_to_id['<s>']] = 1 #[batch | vector | 114]
 
 		# Get last predicted symbol: This will be used for GRU's input
-		GRU_output = torch.squeeze(return_tensor, dim = 1)
+		return_vector = torch.squeeze(return_tensor, dim = 1)
 		#GRU_output = Variable(return_tensor.data[:, 0, :])
-		
 		
 #		#pdb.set_trace()
 		####################################################################
@@ -245,8 +244,22 @@ class WAP(nn.Module):
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
 			#print (GRU_output.cpu().data.numpy().shape)
-			embedded = self.embeds_temp(GRU_output)
+			embedded = self.embeds_temp(return_vector)
+			#print (return_vector.data.numpy().shape)
 
+
+			if self.training == True:
+
+				symbol_data = self.GT[:, RNN_iterate + 1]
+				last_expected_vector = self.createVector(symbol_data, current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+				if self.using_cuda:
+					return_vector = Variable(torch.FloatTensor(last_expected_vector).cuda().zero_(), requires_grad=True)
+				else:
+					return_vector = Variable(torch.FloatTensor(last_expected_vector).cuda(), requires_grad=True)
+					
+				#return_tensor.data[ 0, self.word_to_id['<s>']] = 1 #[batch | vector | 114]
+				# Get last predicted symbol: This will be used for GRU's input
+				#return_vector = torch.squeeze(return_tensor, dim = 1)
 
 			zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
 			zt = F.sigmoid(zt)
@@ -359,4 +372,10 @@ class WAP(nn.Module):
 		#return torch.unsqueeze(return_tensor, dim = 1)
 		# Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
 		return return_tensor
-			
+
+	############## UTILS ######################33
+	def createVector(self, v, batch, toklen):
+		z = numpy.zeros((batch, toklen))
+		for i in range(batch):
+			z[i, v[i]] = 1
+		return z
