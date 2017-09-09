@@ -156,12 +156,15 @@ class WAP(nn.Module):
 		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		################ DEFINITION ########################################
+		
+		start_vector = numpy.zeros((current_tensor_shape[0],1,NetWorkConfig.NUM_OF_TOKEN))
+		start_vector[:,0,self.word_to_id['<s>']] = 1
 
 		if self.using_cuda:
 			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
 			GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).cuda().zero_())
 			# Init return tensor (the prediction of mathematical Expression)
-			return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).cuda().zero_(), requires_grad=True)
+			return_tensor = Variable(torch.FloatTensor(start_vector).cuda(), requires_grad=True)
 			#Init Alpha and Beta Matrix
 			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1 / num_of_block), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
@@ -169,7 +172,7 @@ class WAP(nn.Module):
 			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
 			GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).zero_())
 			# Init return tensor (the prediction of mathematical Expression)
-			return_tensor = Variable(torch.FloatTensor(current_tensor_shape[0], 1, NetWorkConfig.NUM_OF_TOKEN).zero_(), requires_grad=True)
+			return_tensor = Variable(torch.FloatTensor(start_vector), requires_grad=True)
 			#Init Alpha and Beta Matrix
 			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / num_of_block), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
@@ -186,7 +189,7 @@ class WAP(nn.Module):
 		# insert_index = 1
 		
 		# Init the first vector in return_tensor: It is the <s> token
-		return_tensor.data[:, 0, self.word_to_id['<s>']] = 1 #[batch | vector | 114]
+#		return_tensor.data[:, 0, self.word_to_id['<s>']] = 1
 
 		# Get last predicted symbol: This will be used for GRU's input
 		return_vector = torch.squeeze(return_tensor, dim = 1)
@@ -236,8 +239,19 @@ class WAP(nn.Module):
 			########################################################################################
 
 			#--------------------------------------------------------------------
-			
+			 
+			if self.training == True:
 				
+				
+				last_expected_id = self.GT[:, RNN_iterate]
+				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+				for i in range(current_tensor_shape[0]):
+					last_expected_np[i, last_expected_id[i]] = 1
+				
+				if self.using_cuda:
+					return_vector = Variable(torch.FloatTensor(last_expected_np).cuda())
+				else:
+					return_vector = Variable(torch.FloatTensor(last_expected_np))
 			#######################
 			# 
 			# y(t-1) = GRU_output
@@ -245,7 +259,6 @@ class WAP(nn.Module):
 			# Ct	 = multiplied_mat
 			#print (GRU_output.cpu().data.numpy().shape)
 			embedded = self.embeds_temp(return_vector)
-			#print (return_vector.data.numpy().shape)
 
 
 			if self.training == True:
