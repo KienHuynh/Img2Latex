@@ -109,7 +109,7 @@ class TestingNetwork:
 			self.model.setGroundTruth(target.numpy())
 
 			if self.using_cuda:
-				print('using cuda', self.using_cuda)
+#				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
 			if (self.ite % 100 == 99):
 				self.learning_rate = self.learning_rate/5
@@ -148,7 +148,10 @@ class TestingNetwork:
 #			self.try_print();
 			self.optimizer.step() 
 			self.ite += 1
-			self.all_loss.append(loss.data.numpy())
+			if self.using_cuda:
+				self.all_loss.append(loss.cpu().data.numpy())
+			else:
+				self.all_loss.append(loss.data.numpy())
 			plt.ion()
 
 			if batch_idx % 1 == 0:

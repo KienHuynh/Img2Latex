@@ -751,7 +751,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 	#np.save(real_output_path_Target, GTResult)
 	#np.save(real_output_path_Data, ParseResult)
 
-#parseOfficialV_3('./../data/Tra inINKML/expressmatch/101_fujita.inkml')
+#parseOfficialV_3('./../../data/TrainINKML/expressmatch/65_alfonso.inkml')
 #parseFileSpecial('./TrainINKML/TrainINKML/MfrDB/MfrDB0104.inkml', 'img.jpg')
 #ParseFolder('./../data/TrainINKML/expressmatch/', 1, verlen = 2, output_path = 'expressResult/', padding = 50)
 #ParseFolder('./TrainINKML/TrainINKML/KAIST/', 0.065, verlen = 2, output_path = 'expressResult/', padding = 50)

@@ -268,7 +268,7 @@ class WAP(nn.Module):
 				if self.using_cuda:
 					return_vector = Variable(torch.FloatTensor(last_expected_vector).cuda().zero_(), requires_grad=True)
 				else:
-					return_vector = Variable(torch.FloatTensor(last_expected_vector).cuda(), requires_grad=True)
+					return_vector = Variable(torch.FloatTensor(last_expected_vector).zero_(), requires_grad=True)
 					
 				#return_tensor.data[ 0, self.word_to_id['<s>']] = 1 #[batch | vector | 114]
 				# Get last predicted symbol: This will be used for GRU's input
