@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-
+#testnet.loadModelFromFile('model/version5test.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -70,4 +70,4 @@ for epoch in range(1):
 #testnet.test()
 
 
-#testnet.saveModelToFile('model/version1.mdl')
+#testnet.saveModelToFile('model/version5test.mdl')

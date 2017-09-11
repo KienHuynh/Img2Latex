@@ -17,6 +17,14 @@ cuda_avail = torch.cuda.is_available()
 ######### DATA LOADING ######################
 #############################################
 
+#loader = DL.Loader()
+#train, test = loader.generateTensorDatasetFromMNISTFolder('../data/MNIST/')
+#train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data1.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target1.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
+#train, test = loader.generateTensorDatasetFromCROHMEBinary('../data/CROHME/Binary/CROHMEBLOCK_Data_M.npy', '../data/CROHME/Binary/CROHMEBLOCK_Target_M.npy', '../data/CROHME/Binary/CROHMEBLOCK_Data.npy', '')
+
+#train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
+#test_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
+############
 
 loader = DL.loadDatasetFileByFile()
 
@@ -25,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.loadModelFromFile('model/version1.mdl')
+testnet.loadModelFromFile('model/version5test.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -37,9 +45,9 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(NC.EPOCH_COUNT):
+for epoch in range(1):
 	loader.init(NC.DATASET_PATH)
-	testnet.ite = 0
+#	testnet.ite = 0
 	while True:
 		train_data = loader.getNextDataset(batch_size)
 
@@ -48,14 +56,12 @@ for epoch in range(NC.EPOCH_COUNT):
 
 		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
-		testnet.setData(train_loader, train_loader)
+		testnet.setData(train_loader, 0)
 
-		testnet.test(epoch)
-		
+		#testnet.train(epoch + 1)
+		testnet.test()
 		break
 
-#testnet.loadModelFromFile('model/version1.mdl')
-#testnet.test()
 
-
-#testnet.saveModelToFile('model/version1.mdl')
+#testnet.loadModelFromFile('model/version5.mdl')
+#t

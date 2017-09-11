@@ -145,7 +145,8 @@ class TestingNetwork:
 			if (epoch % 20 == 0):
 				pass
 #				pdb.set_trace()
-#			self.try_print();
+			#self.try_print();
+
 			self.optimizer.step() 
 			self.ite += 1
 			self.all_loss.append(loss.data.numpy())
@@ -167,10 +168,14 @@ class TestingNetwork:
 	
 	def test(self):
 		self.model.eval()
+
+		
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
+			self.model.setGroundTruth(target.numpy())
 
 			if self.using_cuda:
+				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
 			if (self.ite % 100 == 99):
 				self.learning_rate = self.learning_rate/5
@@ -179,7 +184,7 @@ class TestingNetwork:
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
-			
+			#print('output', output)
 			
 			if True:
 				#for b_id in range(NetWorkConfig.BATCH_SIZE):
@@ -201,7 +206,9 @@ class TestingNetwork:
 			else :
 				pass
 
-			
+#				pdb.set_trace()
+#			self.try_print();
+			self.optimizer.step() 
 			self.ite += 1
 			self.all_loss.append(loss.data.numpy())
 			plt.ion()
@@ -210,14 +217,12 @@ class TestingNetwork:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
+				print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
 				plt.clf()
 				plt.plot(self.all_loss)
 				plt.draw()
 				if batch_idx > 1:
 					pass
-					#break
-			#break
 		
 	def saveModelToFile(self, path):
 		torch.save(self.model.state_dict(), path)

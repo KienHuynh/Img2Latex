@@ -7,4 +7,4 @@ DATASET_PATH = './../data/miniTrainINKML/'
 # 0 : Kien's computer
 # 1 : Ngoc/Phuc computer
 #
-CURRENT_MACHINE = 0
+CURRENT_MACHINE = 1

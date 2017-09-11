@@ -242,8 +242,21 @@ class WAP(nn.Module):
 			 
 			if self.training == True:
 				
-				
+				#print (max(return_vector))
 				last_expected_id = self.GT[:, RNN_iterate]
+				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+				for i in range(current_tensor_shape[0]):
+					last_expected_np[i, last_expected_id[i]] = 1
+				
+				if self.using_cuda:
+					return_vector = Variable(torch.FloatTensor(last_expected_np).cuda())
+				else:
+					return_vector = Variable(torch.FloatTensor(last_expected_np))
+			else:
+				#print (return_vector.max(1))
+				#quit()
+				arg_max_value = return_vector.max(1)
+				print (arg_max_value[1])
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
 				for i in range(current_tensor_shape[0]):
 					last_expected_np[i, last_expected_id[i]] = 1
@@ -286,6 +299,7 @@ class WAP(nn.Module):
 			GRU_hidden = (1 - zt) * GRU_hidden + zt * ht_candidate # (7)
 			
 			GRU_output = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden) + self.FC_Wc(multiplied_mat)) 
+			
 			#GRU_output = F.softmax(GRU_output)
 		
 			########################################################################################
