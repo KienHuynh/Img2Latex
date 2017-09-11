@@ -255,11 +255,11 @@ class WAP(nn.Module):
 			else:
 				#print (return_vector.max(1))
 				#quit()
-				arg_max_value = return_vector.max(1)
-				print (arg_max_value[1])
+				last_predicted_id = return_vector.max(1)[1].data.numpy()
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
 				for i in range(current_tensor_shape[0]):
-					last_expected_np[i, last_expected_id[i]] = 1
+					last_expected_np[i, last_predicted_id[i,0]] = 1
+					
 				
 				if self.using_cuda:
 					return_vector = Variable(torch.FloatTensor(last_expected_np).cuda())
@@ -273,19 +273,6 @@ class WAP(nn.Module):
 			#print (GRU_output.cpu().data.numpy().shape)
 			embedded = self.embeds_temp(return_vector)
 
-
-			if self.training == True:
-
-				symbol_data = self.GT[:, RNN_iterate + 1]
-				last_expected_vector = self.createVector(symbol_data, current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
-				if self.using_cuda:
-					return_vector = Variable(torch.FloatTensor(last_expected_vector).cuda().zero_(), requires_grad=True)
-				else:
-					return_vector = Variable(torch.FloatTensor(last_expected_vector).zero_(), requires_grad=True)
-					
-				#return_tensor.data[ 0, self.word_to_id['<s>']] = 1 #[batch | vector | 114]
-				# Get last predicted symbol: This will be used for GRU's input
-				#return_vector = torch.squeeze(return_tensor, dim = 1)
 
 			zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
 			zt = F.sigmoid(zt)
