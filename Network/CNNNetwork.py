@@ -175,57 +175,34 @@ class TestingNetwork:
 		
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
-			self.model.setGroundTruth(target.numpy())
 
 			if self.using_cuda:
 				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
-			if (self.ite % 100 == 99):
-				self.learning_rate = self.learning_rate/5
-				self.optimizer.param_groups[0]['lr'] = self.learning_rate
-				print(self.optimizer.param_groups[0]['lr'])
+
 			data, target = Variable(data.float()), Variable(target.long())
-			self.optimizer.zero_grad()
+			
 			output = self.model(data)
 			#print('output', output)
 			
-			if True:
-				#for b_id in range(NetWorkConfig.BATCH_SIZE):
-				#	for s_id in range(50):
-				#		if target.data[b_id, s_id] == getGT.word_to_id['$P']:
-				#			target.data[b_id,s_id] = 0
-				#			output.data[b_id,s_id, :] = 0
-				#			output.data[b_id,s_id, 0] = 1
-				#pdb.set_trace()			
-				#target = target[:,0:49]
-				target.contiguous()
-				#output = output[:,0:50]
-				output.contiguous()
-				target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
-				output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
-			        
-				loss = self.criterion(output, target)
-				
-			else :
-				pass
 
-#				pdb.set_trace()
-#			self.try_print();
-			self.optimizer.step() 
-			self.ite += 1
-			self.all_loss.append(loss.data.numpy())
-			plt.ion()
+			target.contiguous()
+			output.contiguous()
+
+			target = target.view(1 * NetWorkConfig.MAX_TOKEN_LEN)
+			output = output.view(1 * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+
+			print (target.data.numpy())
+			     
+			print (output.max(1)[1].data.numpy().T)
+			print (output.data.numpy())
+
+			loss = self.criterion(output, target)
+			
+
 
 			if batch_idx % 1 == 0:
-#				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-#						epoch, batch_idx * len(data), len(self.train_loader.dataset),
-#						100. * batch_idx / len(self.train_loader), loss.data[0]))
 				print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
-				plt.clf()
-				plt.plot(self.all_loss)
-				plt.draw()
-				if batch_idx > 1:
-					pass
 		
 	def saveModelToFile(self, path):
 		torch.save(self.model.state_dict(), path)
