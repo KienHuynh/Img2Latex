@@ -50,7 +50,6 @@ for epoch in range(1):
 #	testnet.ite = 0
 	while True:
 		train_data = loader.getNextDataset(batch_size)
-
 		if train_data == False:
 			break
 
