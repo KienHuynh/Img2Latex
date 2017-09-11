@@ -3,7 +3,6 @@ import cv2
 import xml.etree.ElementTree
 import os
 from os import walk
-import getGT
 
 import torch
 import torch.nn as nn
@@ -15,6 +14,8 @@ import numpy
 import struct
 import cv2
 
+print ('%5s' % '432')
+quit()
 
 if False:
 	v1 = Variable(torch.FloatTensor(2,3,3).zero_(), requires_grad=True)

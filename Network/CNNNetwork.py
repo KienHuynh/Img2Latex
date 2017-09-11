@@ -23,7 +23,7 @@ class TestingNetwork:
 		################################################
 		########## ATTRIBUTE INIT ######################
 		################################################
-		self.using_cuda = False
+		self.using_cuda = False  
 		self.batch_size = 64
 		self.learning_rate = 0.0001
 		self.momentum = 0.9
@@ -86,7 +86,6 @@ class TestingNetwork:
 			
 			
 	def setCudaState(self, state = True):
-		
 		self.using_cuda = state
 
 		self.model.setCuda(state)
@@ -109,15 +108,17 @@ class TestingNetwork:
 			self.model.setGroundTruth(target.numpy())
 
 			if self.using_cuda:
-#				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
-			if (self.ite % 100 == 99):
-				self.learning_rate = self.learning_rate/5
+				
+			if (self.ite%5000 == 1999):
+				self.learning_rate = self.learning_rate/1.5
+				print("Current learning rate: %.8f" % self.learning_rate)
 				self.optimizer.param_groups[0]['lr'] = self.learning_rate
 				print(self.optimizer.param_groups[0]['lr'])
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
 			output = self.model(data)
+			
 			#print('output', output)
 			
 			if True:
@@ -134,7 +135,11 @@ class TestingNetwork:
 				output.contiguous()
 				target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
 				output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+					
 			        
+
+				#-------------------------------------------------
+
 				loss = self.criterion(output, target)
 				
 			else :
@@ -145,8 +150,7 @@ class TestingNetwork:
 			if (epoch % 20 == 0):
 				pass
 #				pdb.set_trace()
-			#self.try_print();
-
+#			self.try_print();
 			self.optimizer.step() 
 			self.ite += 1
 			if self.using_cuda:
@@ -176,6 +180,7 @@ class TestingNetwork:
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
 
+			self.model.setGroundTruth(target.numpy())
 			if self.using_cuda:
 				print('using cuda', self.using_cuda)
 				data, target = data.cuda(), target.cuda()
@@ -189,14 +194,16 @@ class TestingNetwork:
 			target.contiguous()
 			output.contiguous()
 
-			target = target.view(1 * NetWorkConfig.MAX_TOKEN_LEN)
-			output = output.view(1 * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+			target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
+			output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
 
-			print (target.data.numpy())
-			     
-			print (output.max(1)[1].data.numpy().T)
-			print (output.data.numpy())
+			#print ('------PTP DEBUG------------------');
+			#print (target.view(1, NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN))
+			#print(output.max(1)[1].view(1, NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN))				        
 
+				#-------------------------------------------------
+			self.ite += 1
+			self.printTestResult(target, output)
 			loss = self.criterion(output, target)
 			
 
@@ -204,6 +211,33 @@ class TestingNetwork:
 			if batch_idx % 1 == 0:
 				print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
 		
+		
+
+	def printTestResult(self,  target, predict):
+		target = target.cpu().data.numpy()
+		predict = predict.max(1)[1].cpu().data.numpy()
+
+		#self.getSampleResult(target, predict, self.ite)
+
+		for j in range(NetWorkConfig.BATCH_SIZE):
+			print('')
+			print ('Batch index: ' + str(j))
+			for i in range(NetWorkConfig.MAX_TOKEN_LEN ):
+				if ((target[i + j * NetWorkConfig.MAX_TOKEN_LEN] == 1) and (target[i + j * NetWorkConfig.MAX_TOKEN_LEN + 1] == 1)):
+					break
+				print ('%3s|' % target[i + j * NetWorkConfig.MAX_TOKEN_LEN], end='')
+			print ('')
+			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
+				if ((predict[i + j * NetWorkConfig.MAX_TOKEN_LEN] == 19) and (predict[i + j * NetWorkConfig.MAX_TOKEN_LEN + 1] == 19)):
+					break
+				print ('%3s|' % predict[i + j * NetWorkConfig.MAX_TOKEN_LEN], end='')
+		pass
+
+	def getSampleResult(self, target, predict, batch_id):
+		numpy.save('./PTPsSample/target'  + str(batch_id), target)
+		numpy.save('./PTPsSample/predict' + str(batch_id), predict)
+
+
 	def saveModelToFile(self, path):
 		torch.save(self.model.state_dict(), path)
 	

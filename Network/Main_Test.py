@@ -10,7 +10,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = False
+using_cuda = True
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.loadModelFromFile('model/version5test.mdl')
+testnet.loadModelFromFile('model/official_ver_1.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -45,21 +45,23 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(1):
-	loader.init(NC.DATASET_PATH)
-#	testnet.ite = 0
-	while True:
-		train_data = loader.getNextDataset(batch_size)
+loader.init(NC.DATASET_PATH)
+while True:
+	train_data = loader.getNextDataset(batch_size)
 
-		if train_data == False:
-			break
+	if train_data == False:
+		break
 
-		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+	train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
-		testnet.setData(train_loader, 0)
+	testnet.setData(train_loader, 0)
 
 		#testnet.train(epoch + 1)
-		testnet.test()
+	testnet.test()
+
+
+	br = br + 1
+	if br == 49:
 		break
 
 

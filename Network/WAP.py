@@ -253,12 +253,28 @@ class WAP(nn.Module):
 				else:
 					return_vector = Variable(torch.FloatTensor(last_expected_np))
 			else:
-				#print (return_vector.max(1))
-				#quit()
-				last_predicted_id = return_vector.max(1)[1].data.numpy()
+
+
+				last_predicted_id = return_vector.max(1)[1].data
+
+				last_expected_id = self.GT[:, RNN_iterate]
+				
+				
+				#if last_predicted_id[0] != 19:
+				#	print('---------------------')
+				#	print (last_predicted_id)
+				#	print (last_expected_id)
+
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+					
+
+							
 				for i in range(current_tensor_shape[0]):
-					last_expected_np[i, last_predicted_id[i,0]] = 1
+				
+					#if last_predicted_id[0] != 19:
+					#	print (str(last_expected_id[i]) + ' -- ' + str(last_predicted_id[i]))
+					last_expected_np[i, last_expected_id[i]] = 1
+					#last_expected_np[i, last_predicted_id[i]] = 1
 					
 				
 				if self.using_cuda:
