@@ -14,7 +14,46 @@ import numpy
 import struct
 import cv2
 
-print ('%5s' % '432')
+
+def LevenshteinDistance(s, t):
+
+	m = len(s)
+	n = len(t)
+
+	d = numpy.zeros((m + 1, n + 1))
+
+	for i in range(m + 1):
+		d[i, 0] = i
+
+	for j in range(n + 1):
+		d[0, j] = j
+
+	
+
+	for j in range(1, n + 1):
+		for i in range(1, m + 1):
+			if s[i - 1] == t[j - 1]:
+				substitutionCost = 0
+			else:
+				substitutionCost = 1
+			d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
+
+	print(d)
+
+	return d[m, n]
+
+
+#print(LevenshteinDistance('kitten', 'sitting'))
+print(LevenshteinDistance('sunday', 'saturday'))
+
+
+
+
+
+
+
+
+
 quit()
 
 if False:

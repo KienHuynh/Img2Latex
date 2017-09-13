@@ -211,7 +211,8 @@ class TestingNetwork:
 			if batch_idx % 1 == 0:
 				print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
 		
-		
+	def testFunction(self):
+		pass
 
 	def printTestResult(self,  target, predict):
 		target = target.cpu().data.numpy()
