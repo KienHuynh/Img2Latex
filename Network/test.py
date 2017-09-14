@@ -38,15 +38,13 @@ def LevenshteinDistance(s, t):
 				substitutionCost = 1
 			d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
 
-	print(d)
-
-	return d[m, n]
+	return d[m, n] / m
 
 
 #print(LevenshteinDistance('kitten', 'sitting'))
-print(LevenshteinDistance('sunday', 'saturday'))
+#print(LevenshteinDistance('sunday', 'saturday'))
 
-
+print (LevenshteinDistance([20 ,68,2,108,3,19], [20, 1, 1,1,1,1]))
 
 
 

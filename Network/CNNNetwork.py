@@ -50,6 +50,8 @@ class TestingNetwork:
 			self.criterion = nn.CrossEntropyLoss(ignore_index=1)
 		else:
 			self.criterion = nn.CrossEntropyLoss()
+
+		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
 		
 	def grad_clip(self, max_grad = 0.01):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
@@ -136,7 +138,7 @@ class TestingNetwork:
 				target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
 				output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
 					
-			        
+				self.printTestResult(target, output)
 
 				#-------------------------------------------------
 
@@ -173,9 +175,9 @@ class TestingNetwork:
 			#break
 		
 	
-	def test(self):
+	def test(self, evaluation_method = 0, batch_size  = 1):
 		self.model.eval()
-
+		self.model.train()
 		
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
@@ -188,7 +190,6 @@ class TestingNetwork:
 			data, target = Variable(data.float()), Variable(target.long())
 			
 			output = self.model(data)
-			#print('output', output)
 			
 
 			target.contiguous()
@@ -203,16 +204,73 @@ class TestingNetwork:
 
 				#-------------------------------------------------
 			self.ite += 1
-			self.printTestResult(target, output)
-			loss = self.criterion(output, target)
 			
 
+			sum_loss = 0
 
-			if batch_idx % 1 == 0:
-				print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
+			for i in range(batch_size):
+				sum_loss = sum_loss + self.testFunction(output.max(1)[1].cpu().data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], target.data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], evaluation_method)
+
+			return sum_loss / float(batch_size)
+
+			#loss = self.criterion(output, target)
+			#if batch_idx % 1 == 0:
+			#	print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
 		
-	def testFunction(self):
+	# stragety:
+	# 0: expression
+	# 1: word-distance
+	def testFunction(self, predict, expect, stragety):
+
+		predict = predict.flatten()
+
+		if stragety == 0:
+			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
+				if predict[i] != expect[i]:
+					if predict[i] == self.word_to_id['$P'] and expect[i] == self.word_to_id['$P']:
+						return 1
+					return 0
+			return 1
+		if stragety == 1:
+			## get len
+			word_len = NetWorkConfig.MAX_TOKEN_LEN
+			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
+				if predict[i] == self.word_to_id['$P'] and expect[i] == self.word_to_id['$P']:
+					word_len = i
+					break
+				
+			print (self.LevenshteinDistance(expect[0: word_len], predict[0: word_len]))
+			return self.LevenshteinDistance(expect[0: word_len], predict[0: word_len])
+
+		if stragety == 2:
+			pass
+
 		pass
+
+	def LevenshteinDistance(self, s, t):
+
+		m = len(s)
+		n = len(t)
+
+		d = numpy.zeros((m + 1, n + 1))
+
+		for i in range(m + 1):
+			d[i, 0] = i
+
+		for j in range(n + 1):
+			d[0, j] = j
+
+		
+
+		for j in range(1, n + 1):
+			for i in range(1, m + 1):
+				if s[i - 1] == t[j - 1]:
+					substitutionCost = 0
+				else:
+					substitutionCost = 1
+				d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
+
+		return d[m, n] / max(m , n)
 
 	def printTestResult(self,  target, predict):
 		target = target.cpu().data.numpy()
