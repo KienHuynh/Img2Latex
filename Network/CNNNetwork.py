@@ -13,8 +13,6 @@ import WAP
 import NetWorkConfig
 import pdb
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class TestingNetwork:
@@ -174,14 +172,14 @@ class TestingNetwork:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))	
+				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
+
+				plt.clf()
+				plt.plot(self.all_loss)
+				plt.draw()
 				if batch_idx > 1:
 					pass
-                        if self.ite % 500 == 0:
-                                plt.clf()
-				plt.plot(self.all_loss)
-                                plt.savefig('figures/tmp.png')
-				#plt.draw()
+					#break
 			#break
 		
 	

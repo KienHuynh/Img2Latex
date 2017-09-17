@@ -3,6 +3,7 @@ import cv2
 import xml.etree.ElementTree
 import os
 from os import walk
+import getGT
 
 import torch
 import torch.nn as nn

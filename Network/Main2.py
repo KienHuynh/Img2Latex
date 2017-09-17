@@ -4,6 +4,9 @@ import torch
 import DatasetLoader as DL
 import CNNNetwork as testnetwork
 import NetWorkConfig as NC
+
+import os
+
 batch_size = NC.BATCH_SIZE
 
 #############################################
@@ -68,9 +71,14 @@ for epoch in range(NC.EPOCH_COUNT):
 #		br = br + 1
 #		if br == 3:
 #			break
-#		break
+		#break
 	if epoch%10==9:
-		testnet.saveModelToFile('model/train/version_'+str(epoch)+'.mdl')
+		try:
+			os.mkdir(NC.MODEL_FOLDER)
+		except:
+			pass
+		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_'+str(epoch)+'.mdl')		
+
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
