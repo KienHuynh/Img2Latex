@@ -115,7 +115,7 @@ class WAP(nn.Module):
 		
 	def forward(self, x):
 
-		print (self.training)
+		#print (self.training)
 
 		####################################################################
 		################ FCN BLOCK #########################################
@@ -166,7 +166,7 @@ class WAP(nn.Module):
 			# Init return tensor (the prediction of mathematical Expression)
 			return_tensor = Variable(torch.FloatTensor(start_vector).cuda(), requires_grad=True)
 			#Init Alpha and Beta Matrix
-			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1 / float(num_of_block)), requires_grad=True)
+			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
 		else:
 			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
@@ -174,9 +174,9 @@ class WAP(nn.Module):
 			# Init return tensor (the prediction of mathematical Expression)
 			return_tensor = Variable(torch.FloatTensor(start_vector), requires_grad=True)
 			#Init Alpha and Beta Matrix
-			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1 / float(num_of_block)), requires_grad=True)
+			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1.0 / float(num_of_block)), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
-
+                #pdb.set_trace()
 		####################################################################
 		################ GRU BLOCK #########################################
 		####################################################################

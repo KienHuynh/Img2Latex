@@ -10,7 +10,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = False
+using_cuda = True
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-#testnet.loadModelFromFile('model/version5test.mdl')
+
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -45,11 +45,15 @@ if using_cuda and cuda_avail:
 
 br = 0
 
-for epoch in range(1):
+for epoch in range(NC.EPOCH_COUNT):
 	loader.init(NC.DATASET_PATH)
-#	testnet.ite = 0
+	#print(NC.EPOCH_COUNT)
+	#break 
+	#testnet.ite = 0
+	
 	while True:
 		train_data = loader.getNextDataset(batch_size)
+
 		if train_data == False:
 			break
 
@@ -59,14 +63,16 @@ for epoch in range(1):
 
 		testnet.train(epoch + 1)
 		
-#		break
+		#breakbreak 
 
 #		br = br + 1
 #		if br == 3:
 #			break
 #		break
+	if epoch%10==9:
+		testnet.saveModelToFile('model/train/version_'+str(epoch)+'.mdl')
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
 
-#testnet.saveModelToFile('model/version5test.mdl')
+testnet.saveModelToFile('model/version15_09.mdl')

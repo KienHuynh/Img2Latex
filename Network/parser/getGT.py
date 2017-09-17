@@ -381,7 +381,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
    
 #makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB3905.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
-#getGTfromFolder('./../../data/miniTrainINKML/extension/', './mathsymbolclass.txt')
+#getGTfromFolder('./../../data/TrainINKML/HAMEX/', './mathsymbolclass.txt')
 
 
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
@@ -393,7 +393,7 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 #print (dataout.shape)
 
 #ptb_iterator(vector, 4, 1)
-#makeOneshotGT('./KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('../../data/TrainINKML/KAIST/KME1G3_0_sub_21.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./200922-947-1.inkml', './mathsymbolclass.txt')
 #buildVocab('./mathsymbolclass.txt')
 #makeOneshotGT('./MfrDB0041.inkml', './mathsymbolclass.txt')

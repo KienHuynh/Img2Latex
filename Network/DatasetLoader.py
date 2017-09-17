@@ -12,7 +12,6 @@ import cv2
 from random import shuffle
 import os
 import random
-import pdb
 
 import sys
 sys.path.insert(0, 'parser')
@@ -90,8 +89,6 @@ class loadDatasetFileByFile:
 				if len(self.parent_path) == 0:
 					print ('no more data')
 					return False
-				
-#				pdb.set_trace()
 				choose_index = random.randint(0, self.num_of_folder - 1)
 				inkml_index = random.randint(0, self.folder_size[choose_index])
 				
@@ -100,7 +97,7 @@ class loadDatasetFileByFile:
 				if not files.endswith('.lg'):
 					to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
 
-#				to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+				#to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
 				#print (to_parse_list)
 
 				del self.inkml_list[choose_index][inkml_index]
@@ -115,7 +112,7 @@ class loadDatasetFileByFile:
 
 				
 			#print (to_parse_list)
-#			pdb.set_trace()
+
 			dataset, target = CROHMEParser.ParseList(to_parse_list)
 
 			#print (dataset.shape)
@@ -130,11 +127,11 @@ class loadDatasetFileByFile:
 		#	print (e)
 		#	return False, False
 
-	def init(self, path = "./../data/miniTrainINKML/"):
+	def init(self, path = "./../data/TrainINKML/"):
 		self.parent_path, self.inkml_list, self.folder_size, self.param_list = self.getFileList(path)
 		self.num_of_folder = len(self.parent_path)
 
-	def getFileList(self, path = "./../data/miniTrainINKML/"):
+	def getFileList(self, path = "./../data/TrainINKML/"):
 		inkml_list = []
 		parent_path = []
 		folder_size = []

@@ -13,6 +13,8 @@ import WAP
 import NetWorkConfig
 import pdb
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class TestingNetwork:
@@ -30,7 +32,7 @@ class TestingNetwork:
 		self.lr_decay_base = 0#1/1.15
 		
 		self.model = WAP.WAP()
-
+		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
 		#self.model = Net()
 		#self.model = FCN()
 		train_params = []
@@ -50,8 +52,6 @@ class TestingNetwork:
 			self.criterion = nn.CrossEntropyLoss(ignore_index=1)
 		else:
 			self.criterion = nn.CrossEntropyLoss()
-
-		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
 		
 	def grad_clip(self, max_grad = 0.01):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
@@ -112,7 +112,7 @@ class TestingNetwork:
 			if self.using_cuda:
 				data, target = data.cuda(), target.cuda()
 				
-			if (self.ite%5000 == 1999):
+			if (self.ite%5000 == 4999):
 				self.learning_rate = self.learning_rate/1.5
 				print("Current learning rate: %.8f" % self.learning_rate)
 				self.optimizer.param_groups[0]['lr'] = self.learning_rate
@@ -135,10 +135,22 @@ class TestingNetwork:
 				target.contiguous()
 				#output = output[:,0:50]
 				output.contiguous()
+
+				target_vec = target.cpu().data.numpy()
+				output_vec = numpy.argmax(output.cpu().data.numpy(), axis=2)
 				target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
 				output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
-					
-				self.printTestResult(target, output)
+				target_vec = target_vec[0][0:30]
+				output_vec = output_vec[0][0:30]
+				target_str = []
+				output_str = []
+				for idx in range(0,30):
+					target_str.append(self.id_to_word[target_vec[idx]])
+					output_str.append(self.id_to_word[output_vec[idx]])
+
+				print('target', ' '.join(target_str))
+				print('output', ' '.join(output_str))
+			        
 
 				#-------------------------------------------------
 
@@ -155,23 +167,21 @@ class TestingNetwork:
 #			self.try_print();
 			self.optimizer.step() 
 			self.ite += 1
-			if self.using_cuda:
-				self.all_loss.append(loss.cpu().data.numpy())
-			else:
-				self.all_loss.append(loss.data.numpy())
+			self.all_loss.append(loss.cpu().data.numpy())
 			plt.ion()
 
 			if batch_idx % 1 == 0:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
-				plt.clf()
-				plt.plot(self.all_loss)
-				plt.draw()
+				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))	
 				if batch_idx > 1:
 					pass
-					#break
+                        if self.ite % 500 == 0:
+                                plt.clf()
+				plt.plot(self.all_loss)
+                                plt.savefig('figures/tmp.png')
+				#plt.draw()
 			#break
 		
 	
@@ -190,6 +200,7 @@ class TestingNetwork:
 			data, target = Variable(data.float()), Variable(target.long())
 			
 			output = self.model(data)
+			#print('output', output)
 			
 
 			target.contiguous()
