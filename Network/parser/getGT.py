@@ -75,6 +75,7 @@ def touchGT(path):
 
 
 def getRoot(path):
+	print (path)
 	assert(os.path.exists(path))
 	root = r.parse(path).getroot()
 	return root

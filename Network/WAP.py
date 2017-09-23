@@ -107,6 +107,10 @@ class WAP(nn.Module):
 
 		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
 
+		self.attention_list = []
+		self.debug_data_list = []
+		self.isDebug = False
+
 	def setCuda(self, state):
 		self.using_cuda = state
 
@@ -397,7 +401,8 @@ class WAP(nn.Module):
 
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			
-			
+			if self.isDebug:
+				self.attention_list.append(alpha_mat.data.numpy())
 
 		#return torch.unsqueeze(return_tensor, dim = 1)
 		# Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((

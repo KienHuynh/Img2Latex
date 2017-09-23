@@ -13,7 +13,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = True
+using_cuda = False
 cuda_avail = torch.cuda.is_available()
 
 #############################################

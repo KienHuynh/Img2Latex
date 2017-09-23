@@ -117,8 +117,12 @@ class TestingNetwork:
 				print(self.optimizer.param_groups[0]['lr'])
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
-			output = self.model(data)
+
+			print (type(data))
+
 			
+			output = self.model(data)
+			quit()
 			#print('output', output)
 			
 			if True:
