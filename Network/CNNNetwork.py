@@ -58,15 +58,19 @@ class TestingNetwork:
 			if (type(p_grad) == type(None)):
 				#pdb.set_trace()
 				#here = 1
-				pass
+#				pass
+				print('grad1')
 			else:
 				magnitude = torch.sqrt(torch.sum(p_grad**2))  
 				if (magnitude.data[0] > max_grad):
 					p_grad.data = (max_grad*p_grad/magnitude.data[0]).data
+#					print('type', p_grad.data.shape)
+#					print('grad', p_grad.data)
 					
+#					with open("params.txt", "wb") as f:
+#						numpy.savetxt(f,p_grad.data.numpy(),fmt='%-1.7f',footer='====')
 					
-					
-	def try_print(self, print_flag = True):
+	def try_print(self, print_flag = False):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
 			p_grad = p.grad 
@@ -78,6 +82,8 @@ class TestingNetwork:
 					print (p_grad.data.numpy().shape)
 				else:
 					print (p_grad.data.numpy())
+#					if numpy.all(p_grad.data == 0):
+					print(numpy.where(~p_grad.data.any(axis=0))[0])
 					
 			except:
 				if print_flag:
@@ -122,7 +128,7 @@ class TestingNetwork:
 
 			
 			output = self.model(data)
-			quit()
+#			quit()
 			#print('output', output)
 			
 			if True:

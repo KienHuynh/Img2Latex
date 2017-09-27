@@ -58,7 +58,7 @@ class WAP(nn.Module):
 		
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
-
+#		pdb.set_trace()
 		
 
 		# Temp Declaration
@@ -159,6 +159,7 @@ class WAP(nn.Module):
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
+#		print('num_of_block', num_of_block)
 		################ DEFINITION ########################################
 		
 		start_vector = numpy.zeros((current_tensor_shape[0],1,NetWorkConfig.NUM_OF_TOKEN))
@@ -219,7 +220,7 @@ class WAP(nn.Module):
 			#-------- # alpha : batch x 16 x 32
 			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
 			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
-			#pdb.set_trace()
+#			pdb.set_trace()
 			multiplied_mat = multiplied_mat * expanded_alpha_mat
 			#--------
 			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
@@ -228,6 +229,7 @@ class WAP(nn.Module):
 					
 			# Sum all vector after element-wise multiply to get Ct
 			if NetWorkConfig.CURRENT_MACHINE == 0:
+#				pdb.set_trace()
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 			else:
@@ -247,6 +249,7 @@ class WAP(nn.Module):
 			if self.training == True:
 				
 				#print (max(return_vector))
+#				pdb.set_trace()
 				last_expected_id = self.GT[:, RNN_iterate]
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
 				for i in range(current_tensor_shape[0]):
@@ -291,6 +294,7 @@ class WAP(nn.Module):
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
 			#print (GRU_output.cpu().data.numpy().shape)
+#			pdb.set_trace()
 			embedded = self.embeds_temp(return_vector)
 
 
@@ -331,7 +335,7 @@ class WAP(nn.Module):
 			
 			#ret_temp = multiplied_mat.view(1, 65536)
 
-			# pdb.set_trace()
+# pdb.set_trace()
 			##########################################################
 			######### COVERAGE #######################################
 			##########################################################
@@ -346,13 +350,22 @@ class WAP(nn.Module):
 			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
 			# New Approach
-			FCN_Straight = FCN_Result.transpose(1,3).contiguous()
+#			print('FCN_Result',FCN_Result.size())
+#			print(FCN_Result[1,1,1,0:5])
+			FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
+#			print(FCN_Straight.size())
+#			print(FCN_Straight[1,1,0:5,1])
+#			pdb.set_trace()
+#			FCN_Straight = FCN_Straight.transpose(1,2).contiguous()
+			
 			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
+			
 			from_a = self.Coverage_MLP_From_A(FCN_Straight)
 			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 			# --
 			F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
-			F_Straight = F_.transpose(1,3).contiguous()
+#			F_Straight = F_.transpose(1,3).contiguous()
+			F_Straight = F_.permute(0,2,3,1).contiguous()
 			F_Straight = F_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.Q_height)
 			from_b = self.Coverage_MLP_From_Beta(F_Straight)
 			from_b = from_b.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
@@ -387,20 +400,29 @@ class WAP(nn.Module):
 			#			print (alpha_mat.data.numpy().shape)
 			
 			#alpha_mat = alpha_mat.view(1,16, 32)
+			
 			alpha_mat = F.tanh(from_a)
-
+#			print('alpha_mat',alpha_mat.size())
+#			print(alpha_mat[0,0,0,0:5])
+#			pdb.set_trace()
 			## Va fix ##
-
-			alpha_straight = alpha_mat.transpose(1,3).contiguous()
+			alpha_straight = alpha_mat.contiguous()
+			
+			
+#			alpha_straight = alpha_straight.transpose(1,3).contiguous()
 			alpha_straight = alpha_straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.va_len)
+#			print('alpha_straight',alpha_straight.size())
+#			print(alpha_straight[0:5,0])
+#			pdb.set_trace()
 			alpha_mat = self.Va_fully_connected(alpha_straight)
 
 			alpha_mat = alpha_mat.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			
 
-
+#			pdb.set_trace()
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
-			
+			self.attention_list.append(alpha_mat.data.numpy())
+#			pdb.set_trace()
 			if self.isDebug:
 				self.attention_list.append(alpha_mat.data.numpy())
 

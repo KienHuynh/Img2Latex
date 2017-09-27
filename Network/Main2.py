@@ -6,7 +6,7 @@ import CNNNetwork as testnetwork
 import NetWorkConfig as NC
 
 import os
-
+import numpy as np
 batch_size = NC.BATCH_SIZE
 
 #############################################
@@ -65,6 +65,12 @@ for epoch in range(NC.EPOCH_COUNT):
 		testnet.setData(train_loader, 0)
 
 		testnet.train(epoch + 1)
+	
+#		with open("params.txt", "wb") as f:
+#			for batch_id in range (NC.BATCH_SIZE):
+				
+#				np.savetxt(f,testnet.model.conv1_1.weight.data[batch_id,:,:].numpy(),fmt='%-1.7G',footer='====')
+#				print(testnet.model.conv1_1.weight.data[batch_id,:,:].numpy())
 		
 		#breakbreak 
 
@@ -78,6 +84,7 @@ for epoch in range(NC.EPOCH_COUNT):
 		except:
 			pass
 		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_'+str(epoch)+'.mdl')		
+#print(testnet.model.attention_list[len(testnet.model.attention_list)-1])
 
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
