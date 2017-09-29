@@ -150,6 +150,8 @@ class loadDatasetFileByFile:
 		for i in range(len(parent_path)): #(Scale factor)
 			if 'expressmatch' in parent_path[i]:
 				param_list.append((1,0))
+			elif 'TEST' in parent_path[i]:
+				param_list.append((0.5,0))
 			elif 'HAMEX' in parent_path[i]:
 				param_list.append((100,0))
 			elif 'KAIST' in parent_path[i]:
