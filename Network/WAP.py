@@ -32,29 +32,50 @@ class WAP(nn.Module):
 	
 		super(WAP, self).__init__()
 		self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
+		self.conv1_1_bn = nn.BatchNorm2d(32)
 		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		self.conv1_2_bn = nn.BatchNorm2d(32)
 		self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		self.conv1_3_bn = nn.BatchNorm2d(32)
 		self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+		self.conv1_4_bn = nn.BatchNorm2d(32)
 		
 		self.pool_1 = nn.MaxPool2d(2, stride=2)
 		
 		self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1,padding=1)
+		self.conv2_1_bn = nn.BatchNorm2d(64)
 		self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv2_2_bn = nn.BatchNorm2d(64)
 		self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv2_3_bn = nn.BatchNorm2d(64)
 		self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv2_4_bn = nn.BatchNorm2d(64)
 		
 		self.pool_2 = nn.MaxPool2d(2, stride=2)
 		self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_1_bn = nn.BatchNorm2d(64)
 		self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_2_bn = nn.BatchNorm2d(64)
 		self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_3_bn = nn.BatchNorm2d(64)
 		self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+		self.conv3_4_bn = nn.BatchNorm2d(64)
 		
 		self.pool_3 = nn.MaxPool2d(2, stride=2)
 		
 		self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
+		self.conv4_1_bn = nn.BatchNorm2d(128)
+		self.conv4_1_drop = nn.Dropout2d(p = 0.2)
 		self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		self.conv4_2_bn = nn.BatchNorm2d(128)
+		self.conv4_2_drop = nn.Dropout2d(p = 0.2)
 		self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+		self.conv4_3_bn = nn.BatchNorm2d(128)
+		self.conv4_3_drop = nn.Dropout2d(p = 0.2)
 		self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1) 
+		self.conv4_4_bn = nn.BatchNorm2d(128)
+		self.conv4_4_drop = nn.Dropout2d(p = 0.2)
+		
 		
 		self.pool_4 = nn.MaxPool2d(2, stride=2)
 
@@ -126,36 +147,38 @@ class WAP(nn.Module):
 		####################################################################
 		
 		
-		x = F.relu(self.conv1_1(x))
-		x = F.relu(self.conv1_2(x))
-		x = F.relu(self.conv1_3(x))
-		x = F.relu(self.conv1_4(x))
+		x = F.relu(self.conv1_1_bn(self.conv1_1(x)))
+		x = F.relu(self.conv1_2_bn(self.conv1_2(x)))
+		x = F.relu(self.conv1_3_bn(self.conv1_3(x)))
+		x = F.relu(self.conv1_4_bn(self.conv1_4(x)))
 		
-		x = F.relu(self.pool_1(x))
+		x = self.pool_1(x)
 		
-		x = F.relu(self.conv2_1(x))
-		x = F.relu(self.conv2_2(x))
-		x = F.relu(self.conv2_3(x))
-		x = F.relu(self.conv2_4(x))
+		x = F.relu(self.conv2_1_bn(self.conv2_1(x)))
+		x = F.relu(self.conv2_2_bn(self.conv2_2(x)))
+		x = F.relu(self.conv2_3_bn(self.conv2_3(x)))
+		x = F.relu(self.conv2_4_bn(self.conv2_4(x)))
 		
-		x = F.relu(self.pool_2(x))
+		x = self.pool_2(x)
 		
-		x = F.relu(self.conv3_1(x))
-		x = F.relu(self.conv3_2(x))
-		x = F.relu(self.conv3_3(x))
-		x = F.relu(self.conv3_4(x))
+		x = F.relu(self.conv3_1_bn(self.conv3_1(x)))
+		x = F.relu(self.conv3_2_bn(self.conv3_2(x)))
+		x = F.relu(self.conv3_3_bn(self.conv3_3(x)))
+		x = F.relu(self.conv3_4_bn(self.conv3_4(x)))
 		
-		x = F.relu(self.pool_3(x))
+		x = self.pool_3(x)
 		
-		x = F.relu(self.conv4_1(x))
-		x = F.relu(self.conv4_2(x))
-		x = F.relu(self.conv4_3(x))
-		x = F.relu(self.conv4_4(x))
+		x = F.relu(self.conv4_1_bn(self.conv4_1(x)))
+		x = self.conv4_1_drop(x)
+		x = F.relu(self.conv4_2_bn(self.conv4_2(x)))
+		x = self.conv4_2_drop(x)
+		x = F.relu(self.conv4_3_bn(self.conv4_3(x)))
+		x = self.conv4_3_drop(x)
+		x = F.relu(self.conv4_4_bn(self.conv4_4(x)))
+		x = self.conv4_4_drop(x)
 		
+		FCN_Result = self.pool_4(x)
 		
-		FCN_Result = F.relu(self.pool_4(x))
-
-
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
