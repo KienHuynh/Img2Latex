@@ -123,6 +123,7 @@ class WAP(nn.Module):
 		
 		
 		self.alpha_softmax = torch.nn.Softmax()
+		self.alpha_mat = []
 		#self.testnn = nn.Linear(65536, 128)
 		
 
@@ -182,7 +183,6 @@ class WAP(nn.Module):
 		# Shape of FCU result: normally: (batchsize, 128, 16, 32)
 		current_tensor_shape = FCN_Result.cpu().data.numpy().shape
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
-#		print('num_of_block', num_of_block)
 		################ DEFINITION ########################################
 		
 		start_vector = numpy.zeros((current_tensor_shape[0],1,NetWorkConfig.NUM_OF_TOKEN))
@@ -230,8 +230,6 @@ class WAP(nn.Module):
 		
 		for RNN_iterate in range (NetWorkConfig.MAX_TOKEN_LEN - 1):
 
-			#print (alpha_mat.cpu().data.numpy().shape)
-		
 			# Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
 			multiplied_mat = FCN_Result.clone()
 
@@ -243,7 +241,7 @@ class WAP(nn.Module):
 			#-------- # alpha : batch x 16 x 32
 			expanded_alpha_mat = alpha_mat.view(current_tensor_shape[0], 1, current_tensor_shape[2], current_tensor_shape[3])
 			expanded_alpha_mat = expanded_alpha_mat.repeat(1, current_tensor_shape[1], 1, 1)
-#			pdb.set_trace()
+			#pdb.set_trace()
 			multiplied_mat = multiplied_mat * expanded_alpha_mat
 			#--------
 			#mytemp = Variable(alpha_mat.expand(current_tensor_shape).data)
@@ -252,7 +250,6 @@ class WAP(nn.Module):
 					
 			# Sum all vector after element-wise multiply to get Ct
 			if NetWorkConfig.CURRENT_MACHINE == 0:
-#				pdb.set_trace()
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 			else:
@@ -271,8 +268,6 @@ class WAP(nn.Module):
 			 
 			if self.training == True:
 				
-				#print (max(return_vector))
-#				pdb.set_trace()
 				last_expected_id = self.GT[:, RNN_iterate]
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
 				for i in range(current_tensor_shape[0]):
@@ -292,8 +287,6 @@ class WAP(nn.Module):
 				
 				#if last_predicted_id[0] != 19:
 				#	print('---------------------')
-				#	print (last_predicted_id)
-				#	print (last_expected_id)
 
 				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
 					
@@ -302,7 +295,6 @@ class WAP(nn.Module):
 				for i in range(current_tensor_shape[0]):
 				
 					#if last_predicted_id[0] != 19:
-					#	print (str(last_expected_id[i]) + ' -- ' + str(last_predicted_id[i]))
 					last_expected_np[i, last_expected_id[i]] = 1
 					#last_expected_np[i, last_predicted_id[i]] = 1
 					
@@ -316,8 +308,6 @@ class WAP(nn.Module):
 			# y(t-1) = GRU_output
 			# h(t-1) = GRU_hidden
 			# Ct	 = multiplied_mat
-			#print (GRU_output.cpu().data.numpy().shape)
-#			pdb.set_trace()
 			embedded = self.embeds_temp(return_vector)
 
 
@@ -348,17 +338,14 @@ class WAP(nn.Module):
 			
 			return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 			beta_mat = beta_mat + alpha_mat
-			#print (return_tensor.cpu().data.numpy().shape)
 			#return_tensor.data[:, insert_index, :] = return_vector.data
 			#insert_index = insert_index + 1
 			
 			#print ('-----')
-			#print (return_vector.cpu().data.numpy().shape)
-			#print (return_tensor.cpu().data.numpy().shape)
 			
 			#ret_temp = multiplied_mat.view(1, 65536)
 
-# pdb.set_trace()
+			# pdb.set_trace()
 			##########################################################
 			######### COVERAGE #######################################
 			##########################################################
@@ -373,21 +360,15 @@ class WAP(nn.Module):
 			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
 			# New Approach
-#			print('FCN_Result',FCN_Result.size())
-#			print(FCN_Result[1,1,1,0:5])
+			#FCN_Straight = FCN_Result.transpose(1,3).contiguous()
+			#FCN_Straight = FCN_Straight.transpose(1,2).contiguous()
 			FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
-#			print(FCN_Straight.size())
-#			print(FCN_Straight[1,1,0:5,1])
-#			pdb.set_trace()
-#			FCN_Straight = FCN_Straight.transpose(1,2).contiguous()
-			
 			FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
-			
 			from_a = self.Coverage_MLP_From_A(FCN_Straight)
 			from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 			# --
 			F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
-#			F_Straight = F_.transpose(1,3).contiguous()
+			#F_Straight = F_.transpose(1,3).contiguous()
 			F_Straight = F_.permute(0,2,3,1).contiguous()
 			F_Straight = F_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.Q_height)
 			from_b = self.Coverage_MLP_From_Beta(F_Straight)
@@ -399,8 +380,8 @@ class WAP(nn.Module):
 			#---------------
 
 
-			#alpha_mat = torch.squeeze(from_a, dim = 1)
-			#print (alpha_mat.cpu().data.numpy())
+			alpha_mat = torch.squeeze(from_a, dim = 1)
+
 			
 		
 			
@@ -420,16 +401,13 @@ class WAP(nn.Module):
 			#			alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
 			#			#pdb.set_trace()
 			#
-			#			print (alpha_mat.data.numpy().shape)
 			
 			#alpha_mat = alpha_mat.view(1,16, 32)
-			
 			alpha_mat = F.tanh(from_a)
-#			print('alpha_mat',alpha_mat.size())
-#			print(alpha_mat[0,0,0,0:5])
-#			pdb.set_trace()
+
 			## Va fix ##
 			alpha_straight = alpha_mat.contiguous()
+			#alpha_straight = alpha_straight.transpose(1,3).contiguous()
 			
 			
 #			alpha_straight = alpha_straight.transpose(1,3).contiguous()
@@ -442,7 +420,7 @@ class WAP(nn.Module):
 			alpha_mat = alpha_mat.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			
 
-#			pdb.set_trace()
+
 			alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 			self.attention_list.append(alpha_mat.data.numpy())
 #			pdb.set_trace()
