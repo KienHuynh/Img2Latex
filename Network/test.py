@@ -16,45 +16,6 @@ import struct
 import cv2
 
 
-def LevenshteinDistance(s, t):
-
-	m = len(s)
-	n = len(t)
-
-	d = numpy.zeros((m + 1, n + 1))
-
-	for i in range(m + 1):
-		d[i, 0] = i
-
-	for j in range(n + 1):
-		d[0, j] = j
-
-	
-
-	for j in range(1, n + 1):
-		for i in range(1, m + 1):
-			if s[i - 1] == t[j - 1]:
-				substitutionCost = 0
-			else:
-				substitutionCost = 1
-			d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
-
-	return d[m, n] / m
-
-
-#print(LevenshteinDistance('kitten', 'sitting'))
-#print(LevenshteinDistance('sunday', 'saturday'))
-
-print (LevenshteinDistance([20 ,68,2,108,3,19], [20, 1, 1,1,1,1]))
-
-
-
-
-
-
-
-quit()
-
 if False:
 	v1 = Variable(torch.FloatTensor(2,3,3).zero_(), requires_grad=True)
 	v2 = Variable(torch.FloatTensor(1,3,3).zero_(), requires_grad=True)

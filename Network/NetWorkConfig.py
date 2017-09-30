@@ -1,10 +1,10 @@
 MAX_TOKEN_LEN = 90
 NUM_OF_TOKEN = 114
-BATCH_SIZE = 3
+BATCH_SIZE = 16
 
-EPOCH_COUNT = 1
+EPOCH_COUNT = 500 
 
-DATASET_PATH = './../data/miniTrainINKML/'
+DATASET_PATH = './../data/TrainINKML/'
 
 MODEL_FOLDER = './model/train/'
 

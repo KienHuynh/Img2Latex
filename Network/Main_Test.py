@@ -10,7 +10,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = False
+using_cuda = True
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.loadModelFromFile('model/version6.1test.mdl')
+testnet.loadModelFromFile('model/official_ver_1.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -43,12 +43,9 @@ if using_cuda and cuda_avail:
 ######### TRAINING AND TESTING ##############
 #############################################
 
-iteration = 0
+br = 0
 
 loader.init(NC.DATASET_PATH)
-
-record_count = 0
-sum_loss = 0
 while True:
 	train_data = loader.getNextDataset(batch_size)
 
@@ -60,12 +57,13 @@ while True:
 	testnet.setData(train_loader, 0)
 
 		#testnet.train(epoch + 1)
-	print(testnet.test(1, batch_size = batch_size))
+	testnet.test()
 
 
-	iteration = iteration + 1
+	br = br + 1
+	if br == 49:
+		break
 
-print ('-------LOSS---------')
-print (sum_loss / float(iteration))
+
 #testnet.loadModelFromFile('model/version5.mdl')
 #t

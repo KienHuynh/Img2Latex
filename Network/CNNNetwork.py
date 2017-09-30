@@ -13,6 +13,8 @@ import WAP
 import NetWorkConfig
 import pdb
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class TestingNetwork:
@@ -25,7 +27,8 @@ class TestingNetwork:
 		################################################
 		self.using_cuda = False  
 		self.batch_size = 64
-		self.learning_rate = 0.0001
+		self.learning_rate = 0.00025
+		#self.learning_rate = 0.0000131687243
 		self.momentum = 0.9
 		self.lr_decay_base = 0#1/1.15
 		
@@ -58,19 +61,15 @@ class TestingNetwork:
 			if (type(p_grad) == type(None)):
 				#pdb.set_trace()
 				#here = 1
-#				pass
-				print('grad1')
+				pass
 			else:
 				magnitude = torch.sqrt(torch.sum(p_grad**2))  
 				if (magnitude.data[0] > max_grad):
 					p_grad.data = (max_grad*p_grad/magnitude.data[0]).data
-#					print('type', p_grad.data.shape)
-#					print('grad', p_grad.data)
 					
-#					with open("params.txt", "wb") as f:
-#						numpy.savetxt(f,p_grad.data.numpy(),fmt='%-1.7f',footer='====')
 					
-	def try_print(self, print_flag = False):
+					
+	def try_print(self, print_flag = True):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
 			p_grad = p.grad 
@@ -82,8 +81,6 @@ class TestingNetwork:
 					print (p_grad.data.numpy().shape)
 				else:
 					print (p_grad.data.numpy())
-#					if numpy.all(p_grad.data == 0):
-					print(numpy.where(~p_grad.data.any(axis=0))[0])
 					
 			except:
 				if print_flag:
@@ -93,7 +90,7 @@ class TestingNetwork:
 			
 	def setCudaState(self, state = True):
 		self.using_cuda = state
-
+		
 		self.model.setCuda(state)
 		
 	def setData(self, train, test):
@@ -123,12 +120,8 @@ class TestingNetwork:
 				print(self.optimizer.param_groups[0]['lr'])
 			data, target = Variable(data.float()), Variable(target.long())
 			self.optimizer.zero_grad()
-
-			print (type(data))
-
-			
 			output = self.model(data)
-#			quit()
+			
 			#print('output', output)
 			
 			if True:
@@ -138,7 +131,6 @@ class TestingNetwork:
 				#			target.data[b_id,s_id] = 0
 				#			output.data[b_id,s_id, :] = 0
 				#			output.data[b_id,s_id, 0] = 1
-				#pdb.set_trace()			
 				#target = target[:,0:49]
 				target.contiguous()
 				#output = output[:,0:50]
@@ -182,14 +174,14 @@ class TestingNetwork:
 #				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 #						epoch, batch_idx * len(data), len(self.train_loader.dataset),
 #						100. * batch_idx / len(self.train_loader), loss.data[0]))
-				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))
-
-				plt.clf()
-				plt.plot(self.all_loss)
-				plt.draw()
+				print('[E %d, I %d]: %.5f' % (epoch,self.ite, loss.data[0]))	
 				if batch_idx > 1:
 					pass
-					#break
+                        if self.ite % 500 == 0:
+                                plt.clf()
+				plt.plot(self.all_loss)
+                                plt.savefig('figures/tmp.png')
+				#plt.draw()
 			#break
 		
 	
@@ -223,6 +215,8 @@ class TestingNetwork:
 
 				#-------------------------------------------------
 			self.ite += 1
+			self.printTestResult(target, output)
+			loss = self.criterion(output, target)
 			
 
 			sum_loss = 0
@@ -318,8 +312,22 @@ class TestingNetwork:
 
 	def saveModelToFile(self, path):
 		torch.save(self.model.state_dict(), path)
+		try:
+			torch.save(self.model, path + 'abc')
+		except:
+			pass 
 	
 	def loadModelFromFile(self, path):
 		self.model.load_state_dict(torch.load(path))
+		#self.model = torch.load(path)
 
-		
+	def saveLearningRate(self):
+
+		try:
+			f = open('lr.txt', w)
+			f.write(str(self.learning_rate))
+			f.close()
+
+		except:
+			print ('The code is malfunction! anyway, current lr is:')
+			print (self.learning_rate)

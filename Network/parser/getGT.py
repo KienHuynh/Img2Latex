@@ -35,7 +35,7 @@ def buildVocab(path):
 	word_to_id = dict(zip(words, range(len(words))))
 	id_to_word = dict((v, k) for k, v in word_to_id.items())
 	#print(len(word_to_id))
-#	print(id_to_word)
+	#print(id_to_word)
 	#train = _file_to_word_ids(truth, word_to_id)
 	#print(train)
 	return word_to_id, id_to_word
@@ -75,7 +75,6 @@ def touchGT(path):
 
 
 def getRoot(path):
-	print (path)
 	assert(os.path.exists(path))
 	root = r.parse(path).getroot()
 	return root

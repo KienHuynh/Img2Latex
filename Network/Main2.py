@@ -6,14 +6,17 @@ import CNNNetwork as testnetwork
 import NetWorkConfig as NC
 
 import os
-import numpy as np
+import pdb
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 batch_size = NC.BATCH_SIZE
 
 #############################################
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = False
+using_cuda = True
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -34,12 +37,15 @@ loader = DL.loadDatasetFileByFile()
 
 
 
-#############
+############# version15_09.mdl
 testnet = testnetwork.TestingNetwork()
-
-
+#testnet.loadModelFromFile('model/version15_09.mdl')
 if using_cuda and cuda_avail:
-	testnet.model.cuda()
+	if hasattr(testnet.model, 'cuda'):
+		testnet.model.cuda()
+	else:
+		testnet.model
+	#testnet.model.cuda()
 	testnet.setCudaState()
 
 #############################################
@@ -65,12 +71,6 @@ for epoch in range(NC.EPOCH_COUNT):
 		testnet.setData(train_loader, 0)
 
 		testnet.train(epoch + 1)
-	
-#		with open("params.txt", "wb") as f:
-#			for batch_id in range (NC.BATCH_SIZE):
-				
-#				np.savetxt(f,testnet.model.conv1_1.weight.data[batch_id,:,:].numpy(),fmt='%-1.7G',footer='====')
-#				print(testnet.model.conv1_1.weight.data[batch_id,:,:].numpy())
 		
 		#breakbreak 
 
@@ -78,16 +78,22 @@ for epoch in range(NC.EPOCH_COUNT):
 #		if br == 3:
 #			break
 		#break
-	if epoch%10==9:
+	if epoch%3 == 2:
+		for i in range(len(testnet.model.alpha_mat)):
+			plt.imshow(testnet.model.alpha_mat[i][0,:], cmap='gray', interpolation='nearest')
+			plt.savefig('figures/tmp0_%03d.png' % i)
+			plt.clf()
+	if epoch%25==24:
 		try:
 			os.mkdir(NC.MODEL_FOLDER)
 		except:
 			pass
-		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_'+str(epoch)+'.mdl')		
-#print(testnet.model.attention_list[len(testnet.model.attention_list)-1])
+		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_2609_'+str(epoch)+'.mdl')	
+		testnet.saveLearningRate()	
 
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
 
-testnet.saveModelToFile('model/version15_09.mdl')
+testnet.saveModelToFile('model/version26_09.mdl')
+testnet.saveLearningRate()	
