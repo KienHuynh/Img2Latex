@@ -131,6 +131,7 @@ class TestingNetwork:
 				#			target.data[b_id,s_id] = 0
 				#			output.data[b_id,s_id, :] = 0
 				#			output.data[b_id,s_id, 0] = 1
+				#pdb.set_trace()			
 				#target = target[:,0:49]
 				target.contiguous()
 				#output = output[:,0:50]
@@ -187,7 +188,7 @@ class TestingNetwork:
 	
 	def test(self, evaluation_method = 0, batch_size  = 1):
 		self.model.eval()
-		self.model.train()
+		#self.model.train()
 		
 		for batch_idx, (data, target) in enumerate(self.train_loader):
 
@@ -215,8 +216,6 @@ class TestingNetwork:
 
 				#-------------------------------------------------
 			self.ite += 1
-			self.printTestResult(target, output)
-			loss = self.criterion(output, target)
 			
 
 			sum_loss = 0
@@ -226,39 +225,125 @@ class TestingNetwork:
 
 			return sum_loss / float(batch_size)
 
-			#loss = self.criterion(output, target)
-			#if batch_idx % 1 == 0:
-			#	print('[E %d, I %d]: %.5f' % (0,self.ite, loss.data[0]))
+
+
+
+	def testAll(self, batch_size  = 1):
+		self.model.eval()
+		self.model.train()
+		
+		for batch_idx, (data, target) in enumerate(self.train_loader):
+
+
+			self.model.setGroundTruth(target.numpy())
+			if self.using_cuda:
+				print('using cuda', self.using_cuda)
+				data, target = data.cuda(), target.cuda()
+
+			data, target = Variable(data.float()), Variable(target.long())
+			
+			output = self.model(data)
+			#print('output', output)
+			
+
+			target.contiguous()
+			output.contiguous()
+
+
+			target_vec = target.cpu().data.numpy()
+			output_vec = numpy.argmax(output.cpu().data.numpy(), axis=2)
+			target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
+			output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+			target_vec = target_vec[0][0:40]
+			output_vec = output_vec[0][0:40]
+			target_str = []
+			output_str = []
+			for idx in range(0,20):
+				target_str.append(self.id_to_word[target_vec[idx]])
+				output_str.append(self.id_to_word[output_vec[idx]])
+			print('target', ' '.join(target_str))
+			print('output', ' '.join(output_str))
+
+
+			target = target.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN)
+			output = output.view(NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN, NetWorkConfig.NUM_OF_TOKEN)
+
+			#print ('------PTP DEBUG------------------');
+			#print (target.view(1, NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN))
+			#print(output.max(1)[1].view(1, NetWorkConfig.BATCH_SIZE * NetWorkConfig.MAX_TOKEN_LEN))				        
+
+				#-------------------------------------------------
+			self.ite += 1
+			
+
+			sum_loss_w = 0
+			sum_loss_l = 0
+			sum_loss_e = 0
+
+			for i in range(batch_size):
+				sum_loss_w = sum_loss_w + self.testFunction(output.max(1)[1].cpu().data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], target.data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], 0)
+
+				sum_loss_l = sum_loss_l + self.testFunction(output.max(1)[1].cpu().data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], target.data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], 1)
+
+				sum_loss_e = sum_loss_e + self.testFunction(output.max(1)[1].cpu().data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], target.data.numpy()[i * NetWorkConfig.MAX_TOKEN_LEN : (i + 1) * NetWorkConfig.MAX_TOKEN_LEN], 2)
+
+			return sum_loss_w / float(batch_size), sum_loss_l / float(batch_size), sum_loss_e / float(batch_size)
+
 		
 	# stragety:
 	# 0: expression
 	# 1: word-distance
+	# 2: Euclid
 	def testFunction(self, predict, expect, stragety):
+
+		
 
 		predict = predict.flatten()
 
 		if stragety == 0:
 			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
+				
+				
+
 				if predict[i] != expect[i]:
-					if predict[i] == self.word_to_id['$P'] and expect[i] == self.word_to_id['$P']:
-						return 1
-					return 0
+					if (predict[i] == self.word_to_id['$P'] or predict[i] == self.word_to_id['</s>']) and expect[i] == self.word_to_id['$P']:
+						return 0
+					return 1
+				elif expect[i] == self.word_to_id['</s>']:
+					return 0			
 			return 1
 		if stragety == 1:
 			## get len
 			word_len = NetWorkConfig.MAX_TOKEN_LEN
 			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
-				if predict[i] == self.word_to_id['$P'] and expect[i] == self.word_to_id['$P']:
+
+				if (predict[i] == self.word_to_id['$P'] or predict[i] == self.word_to_id['</s>']) and expect[i] == self.word_to_id['$P']:
 					word_len = i
 					break
 				
-			print (self.LevenshteinDistance(expect[0: word_len], predict[0: word_len]))
+			#print(self.LevenshteinDistance(expect[0: word_len], predict[0: word_len]))
 			return self.LevenshteinDistance(expect[0: word_len], predict[0: word_len])
 
 		if stragety == 2:
-			pass
+			word_len = NetWorkConfig.MAX_TOKEN_LEN
 
-		pass
+			incorrect_count = 0
+
+			for i in range(NetWorkConfig.MAX_TOKEN_LEN):
+
+				if (predict[i] == self.word_to_id['$P'] or predict[i] == self.word_to_id['</s>']) and expect[i] == self.word_to_id['$P']:
+					word_len = i
+					break
+				else:
+					if predict[i] != expect[i]:
+						incorrect_count = incorrect_count + 1
+
+			return incorrect_count / float(word_len - 1)
+
+
+
+		
+
 
 	def LevenshteinDistance(self, s, t):
 
@@ -303,7 +388,6 @@ class TestingNetwork:
 				if ((predict[i + j * NetWorkConfig.MAX_TOKEN_LEN] == 19) and (predict[i + j * NetWorkConfig.MAX_TOKEN_LEN + 1] == 19)):
 					break
 				print ('%3s|' % predict[i + j * NetWorkConfig.MAX_TOKEN_LEN], end='')
-		pass
 
 	def getSampleResult(self, target, predict, batch_id):
 		numpy.save('./PTPsSample/target'  + str(batch_id), target)

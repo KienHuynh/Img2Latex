@@ -94,6 +94,7 @@ for epoch in range(NC.EPOCH_COUNT):
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
+#print('alpha_mat',testnet.model.alpha_mat)
 
 testnet.saveModelToFile('model/version26_09.mdl')
 testnet.saveLearningRate()	

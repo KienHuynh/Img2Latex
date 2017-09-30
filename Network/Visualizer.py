@@ -4,7 +4,7 @@ import cv2
 import sys
 sys.path.insert(0, './parser')
 
-use_python_2 = False
+use_python_2 = True
 if use_python_2:
 	import Tkinter
 	from Tkinter import *
@@ -283,6 +283,7 @@ class main_window:
 			for i in range(len(self.model.attention_list)):
 				temp = self.model.attention_list[i][0]
 
+				
 				resized_image = cv2.resize(temp, (512, 256))
 
 				processed_image = resized_image * self.Image_list[0] * 255
@@ -291,6 +292,9 @@ class main_window:
 
 				print ('aaaaaaaaaaaaaaaaaaaa')
 				#print (resized_image)
+
+
+			print(self.model.attention_list)
 
 
 			#print (len(self.Image_list))

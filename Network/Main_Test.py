@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.loadModelFromFile('model/official_ver_1.mdl')
+testnet.loadModelFromFile('model/train/version_2609_74.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
@@ -43,9 +43,15 @@ if using_cuda and cuda_avail:
 ######### TRAINING AND TESTING ##############
 #############################################
 
-br = 0
+iteration = 0
 
 loader.init(NC.DATASET_PATH)
+
+record_count = 0
+sum_loss_exp = 0
+sum_loss_dist = 0
+sum_loss_ecl = 0
+perfect = 0
 while True:
 	train_data = loader.getNextDataset(batch_size)
 
@@ -57,13 +63,45 @@ while True:
 	testnet.setData(train_loader, 0)
 
 		#testnet.train(epoch + 1)
-	testnet.test()
+	#print(testnet.test(1, batch_size = batch_size))
+
+	print('--------------------------------------')
+
+	loss_w, loss_l, loss_e = testnet.testAll(batch_size = batch_size)
 
 
-	br = br + 1
-	if br == 49:
-		break
+	if loss_w < 0.1:
+		perfect = perfect + 1
+
+	sum_loss_exp = sum_loss_exp +  loss_w
+	sum_loss_dist = sum_loss_dist +  loss_l
+	sum_loss_ecl = sum_loss_ecl + loss_e
+
+	print(loss_w)
+	print(loss_l)
+	print(loss_e)
+
+
+	iteration = iteration + 1
+
+
+print ('-------LOSS---------')
+print (perfect)
+print (sum_loss_exp/ float(iteration))
+print (sum_loss_dist/ float(iteration))
+print (sum_loss_ecl/ float(iteration))
+
+f = open('lr.txt', 'w')
+f.write(str(perfect))
+f.write('--')
+f.write(str(sum_loss_exp/ float(iteration)))
+f.write('--')
+f.write(str(sum_loss_dist/ float(iteration)))
+f.write('--')
+f.write(str(sum_loss_ecl/ float(iteration)))
+f.close()
 
 
 #testnet.loadModelFromFile('model/version5.mdl')
 #t
+

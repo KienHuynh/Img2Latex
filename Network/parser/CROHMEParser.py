@@ -571,6 +571,7 @@ def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_he
 		expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
 		
 		for stroke in vertex_arr:
+			
 			temp_vertex_arr = []
 			for vertex in stroke:
 				temp_vertex_arr.append((int((vertex[0] - min_x) * scale_factor ), int((vertex[1] - min_y) * scale_factor)))
@@ -582,7 +583,6 @@ def parseOfficialV_3(input_path, scale_factor = 1, target_width = 512, target_he
 			
 			for i in range (len(stroke) - 1):
 				cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], 255, 1)
-
 		#################################
 		##### PADDING ###################
 		#################################
@@ -737,6 +737,10 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 		temp_result = parseOfficialV_3(filedata[0], filedata[1][0], padding = padding)
 		try:
 			temp_GT = getGT.makeOneshotGT(filedata[0], './parser/mathsymbolclass.txt')
+
+			#cv2.imshow("big", temp_result[8]); 
+			#cv2.waitKey();
+
 		except xml.etree.ElementTree.ParseError as e:
 			pdb.set_trace()
 		#print('len', len(temp_GT))
@@ -752,6 +756,7 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 			GTResult.append(temp_GT)
 	
 	#print (np.asarray(GTResult).shape)
+
 	return np.asarray(ParseResult), np.asarray(GTResult)
 
 	#np.save(real_output_path_Target, GTResult)
