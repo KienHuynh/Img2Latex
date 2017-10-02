@@ -18,6 +18,7 @@ from os import walk
 import re
 import collections
 import NetWorkConfig
+import pdb 
 
 def readSymbolfile(path):
 	assert(os.path.exists(path))
@@ -84,7 +85,7 @@ def modifiedText(text):
 	standard = ['phi','pi','theta','alpha','beta','gamma','infty','sigma','Delta',
 				'lamda','mu','pm','sin','cos','neq','leq','gt','sqrt','div','times',
 				'sum','log','tan','ldots','geq','rightarrow','lim','int','exists',
-				'forall','in','prime','lt','ne','cdot','cdots']
+				'forall','in','prime','lt','ne','cdot','cdots','{','}']
 	
 	if text == '<':
 		text = 'lt'
@@ -122,8 +123,6 @@ def parseGT(root, text, ignoreElems):
 	if root.tag[index:] in ignoreElems:
 		return
 	if len(root) == 0:
-		
-			
 		temp = modifiedText(root.text)
 		text.append(temp)
 		return
@@ -212,7 +211,129 @@ def parseGT(root, text, ignoreElems):
 		else:
 			for child in root:
 				parseGT(child, text, ignoreElems)
-		   
+				
+				
+def getAttribVal(root):
+	dict = root.attrib
+	field, value = dict.items()[0]
+	return value
+
+def parseGTid(root, text, ignoreElems):
+	index = getIndex(root)
+	if root.tag[index:] in ignoreElems:
+		return
+	if len(root) == 0:
+		text.append(getAttribVal(root))
+		return
+	else:
+	#	print(root.tag[length+6:])
+	#	print('tttag',root.tag)
+		if root.tag[index:] == 'msqrt':
+			text.append(getAttribVal(root))
+			text.append('{')
+			for child in root:
+				parseGTid(child, text, ignoreElems)
+			text.append('}')
+		elif root.tag[index:] == 'mroot':
+			n = 1
+			text.append(getAttribVal(root))
+			for child in root:
+				if n == 2:
+					text.append('{')
+					parseGTid(child, text, ignoreElems)
+					text.append('}')
+				else:
+					text.append('[')
+					parseGTid(child, text, ignoreElems)
+					text.append(']')
+				n += 1
+			
+		elif root.tag[index:] == 'mfrac':
+			text.append(getAttribVal(root))
+			for child in root:
+				text.append('{')
+				parseGTid(child, text, ignoreElems)
+				text.append('}')  
+		elif root.tag[index:] == 'msub' or root.tag[index:] == 'munder':
+			n = 1
+			for child in root:
+				if n == 2:
+					text.append('_')
+					if child.tag[index:] == 'mrow':
+						text.append('{')
+						parseGTid(child, text, ignoreElems)
+						text.append('}')
+					else:
+						parseGTid(child, text, ignoreElems)
+				else:
+					parseGTid(child, text, ignoreElems)
+				n = n + 1
+		elif root.tag[index:] == 'msup' or root.tag[index:] == 'mover':
+			n = 1
+			for child in root:
+				if n == 2:
+					text.append('^')
+					if child.tag[index:] == 'mrow':
+						text.append('{')
+						parseGTid(child, text, ignoreElems)
+						text.append('}')
+					else:
+						parseGTid(child, text, ignoreElems)
+				else:
+					parseGTid(child, text, ignoreElems)
+				n = n + 1
+		elif root.tag[index:] == 'msubsup' or root.tag[index:] == 'munderover':
+			n = 1
+			for child in root:
+				if n == 2:
+					text.append('_')
+					if child.tag[index:] == 'mrow':
+						text.append('{')
+						parseGTid(child, text, ignoreElems)
+						text.append('}')
+					else:
+						parseGTid(child, text, ignoreElems)
+				elif n == 3:
+					text.append('^')
+					if child.tag[index:] == 'mrow':
+						text.append('{')
+						parseGTid(child, text, ignoreElems)
+						text.append('}')
+					else:
+						parseGTid(child, text, ignoreElems)
+				else:
+					parseGTid(child, text, ignoreElems)
+				n = n + 1
+	#	elif root.tag[index:] == 'munder':
+			
+		else:
+			for child in root:
+				parseGTid(child, text, ignoreElems)
+				
+def makeGTidVec(path_to_ink, path_to_symbol):
+	word_to_id, id_to_word = buildVocab(path_to_symbol)
+	#print(id_to_word)
+	#chuan hoa text de tach ra duoc tung symbol va luu thanh mang trong data
+	#TODO
+	#data = ['\\forall', 'g', '\\in', 'G'] 
+	#print(touchGT(path_to_ink))
+	root = getRoot(path_to_ink)
+	ignoreElems = ['traceFormat','annotation','trace','traceGroup']
+	text = []
+	#--------- PTP Fix : Add Start/ End and padding token
+	##################################
+	#parseGT(root, text, ignoreElems)#
+	##################################
+	parseGTid(root, text, ignoreElems)
+	text.append('</s>')
+	
+#	print ('gt', text)
+	
+	#print (vector)
+#	tensor = torch.LongTensor(vector)
+#	print('vector',Variable(tensor))
+#	return Variable(tensor)
+	return text
 def makeOneshotGT(path_to_ink, path_to_symbol):
 	word_to_id, id_to_word = buildVocab(path_to_symbol)
 	#print(id_to_word)
@@ -223,7 +344,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	root = getRoot(path_to_ink)
 	ignoreElems = ['traceFormat','annotation','trace','traceGroup']
 	text = ['<s>']
-	
+	textid = ['<s>']
 	#--------- PTP Fix : Add Start/ End and padding token
 	##################################
 	#parseGT(root, text, ignoreElems)#
@@ -249,7 +370,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	
 	for i in range(need_to_pad):
 		text.append('$P')
-	#print ('gt', len(text))
+#	print ('gt', text)
 	preplaceW2ID(text, word_to_id)
 	vector = replaceW2ID(text, word_to_id)
 #	print('vector', vector)
@@ -265,7 +386,7 @@ def getGTfromFolder(input_path, path_to_symbol):
 	for (dirpath, dirnames, filenames) in walk(input_path):
 		for file in filenames:
 			if not file.endswith('lg'):
-				print (input_path + file)
+#				print (input_path + file)
 				makeOneshotGT(input_path + file, path_to_symbol)
 				i = i+1
 #			if i == 10:
@@ -379,9 +500,10 @@ def ptb_iterator(raw_data, batch_size, num_steps):
 	
 	
    
-#makeOneshotGT('./../../data/TrainINKML/MfrDB/MfrDB3905.inkml', './mathsymbolclass.txt')
+#makeOneshotGT('./../../data/TrainINKML/expressmatch/82_daniel.inkml', './mathsymbolclass.txt')
+#makeGTidVec('./../../data/TrainINKML/expressmatch/82_daniel.inkml', './mathsymbolclass.txt')
 #makeOneshotGT('./8_em_65.inkml', './mathsymbolclass.txt')
-#getGTfromFolder('./../../data/TrainINKML/HAMEX/', './mathsymbolclass.txt')
+#getGTfromFolder('./../../data/TrainINKML/KAIST/', './mathsymbolclass.txt')
 
 
 #vector = makeOneshotGT('./../data/CROHME/test/formulaire039-equation049.inkml','./mathsymbolclass.txt')
