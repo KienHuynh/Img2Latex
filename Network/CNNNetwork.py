@@ -242,12 +242,15 @@ class TestingNetwork:
 					pass
 					if self.ite % 500 == 0:
 						plt.clf()
-				plt.plot(self.all_loss)
-				plt.savefig('figures/total_loss.png')
-				plt.clf()
-				plt.plot(self.all_lossA)
-				plt.savefig('figures/total_lossA.png')
-				plt.clf()
+				try:
+					plt.plot(self.all_loss)
+					plt.savefig('figures/total_loss.png')
+					plt.clf()
+					plt.plot(self.all_lossA)
+					plt.savefig('figures/total_lossA.png')
+					plt.clf()
+				except:
+					pass
 				#plt.draw()
 			#break
 		
