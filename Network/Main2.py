@@ -35,11 +35,10 @@ cuda_avail = torch.cuda.is_available()
 loader = DL.loadDatasetFileByFile()
 
 
-
-
 ############# version15_09.mdl
 testnet = testnetwork.TestingNetwork()
-#testnet.loadModelFromFile('model/version15_09.mdl')
+#testnet.loadModelFromFile('./model/train/version_1210_14.mdl')
+torch.manual_seed(2017)
 if using_cuda and cuda_avail:
 	if hasattr(testnet.model, 'cuda'):
 		testnet.model.cuda()
@@ -47,12 +46,15 @@ if using_cuda and cuda_avail:
 		testnet.model
 	#testnet.model.cuda()
 	testnet.setCudaState()
+        torch.cuda.manual_seed(2017)
 
 #############################################
 ######### TRAINING AND TESTING ##############
 #############################################
 
 br = 0
+
+
 
 for epoch in range(NC.EPOCH_COUNT):
 	loader.init(NC.DATASET_PATH)
@@ -61,14 +63,15 @@ for epoch in range(NC.EPOCH_COUNT):
 	#testnet.ite = 0
 	
 	while True:
-		train_data = loader.getNextDataset(batch_size)
+		train_data, attendGT= loader.getNextDataset(batch_size)
 
 		if train_data == False:
+#			pdb.set_trace()
 			break
 
-		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
-
-		testnet.setData(train_loader, 0)
+		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
+#		pdb.set_trace()
+		testnet.setData(train_loader,attendGT, 0)
 
 		testnet.train(epoch + 1)
 		
@@ -77,24 +80,24 @@ for epoch in range(NC.EPOCH_COUNT):
 #		br = br + 1
 #		if br == 3:
 #			break
-		#break
-	if epoch%3 == 2:
-		for i in range(len(testnet.model.alpha_mat)):
-			plt.imshow(testnet.model.alpha_mat[i][0,:], cmap='gray', interpolation='nearest')
+#		break
+	if epoch%2 == 9:
+		for i in range(len(testnet.model.print_alpha_mat)):
+			plt.imshow(testnet.model.print_alpha_mat[i][0,:], cmap='gray', interpolation='nearest')
 			plt.savefig('figures/tmp0_%03d.png' % i)
 			plt.clf()
-	if epoch%25==24:
+	if epoch%5==4:
 		try:
 			os.mkdir(NC.MODEL_FOLDER)
 		except:
 			pass
-		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_2609_'+str(epoch)+'.mdl')	
+		testnet.saveModelToFile(NC.MODEL_FOLDER + 'version_1210_'+str(epoch)+'.mdl')	
 		testnet.saveLearningRate()	
 
 #testnet.loadModelFromFile('model/version1.mdl')
 #testnet.test()
 
-#print('alpha_mat',testnet.model.alpha_mat)
+#print('alpha_mat',testnet.model.alpha_mat[88].shape)
 
 testnet.saveModelToFile('model/version26_09.mdl')
 testnet.saveLearningRate()	

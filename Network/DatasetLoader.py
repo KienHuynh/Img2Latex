@@ -15,8 +15,10 @@ import random
 
 import sys
 sys.path.insert(0, 'parser')
-import CROHMEParser
+#import CROHMEParser
+import sharedFunction
 
+import pdb
 #train = torch.utils.data.TensorDataset(a, b)
 #train_loader = torch.utils.data.DataLoader(train, batch_size=2, shuffle=False)
 
@@ -64,10 +66,12 @@ class Loader:
 		return Tensor_train, Tensor_test
 
 	def generateTensorDatasetFromCROHMENumpy(self, train_set, train_target):
-		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target.astype(numpy.int64)))
-		return Tensor_train
+		#pdb.set_trace()
+		Tensor_train = self.getTensorDataset(torch.from_numpy(train_set), torch.from_numpy(train_target[0].astype(numpy.int64)))
+		return Tensor_train, train_target[1]
 
 	def getTensorDataset(self, input_data, target):
+		#pdb.set_trace()
 		return torch.utils.data.TensorDataset(input_data, target)
 
 class loadDatasetFileByFile:
@@ -77,6 +81,7 @@ class loadDatasetFileByFile:
 		try:
 			os.mkdir(parse_result_path)
 		except:
+#			pdb.set_trace()
 			pass
 
 	def getNextDataset(self, batch_size):
@@ -88,14 +93,16 @@ class loadDatasetFileByFile:
 #			for i in range(batch_size):
 				if len(self.parent_path) == 0:
 					print ('no more data')
-					return False
+					return False, False
 				choose_index = random.randint(0, self.num_of_folder - 1)
 				inkml_index = random.randint(0, self.folder_size[choose_index])
 				
 				# TODO Ngoc: Nen xoa cac file lg thi hon, dung co compare nay vi no se lam giam toc do train
 				files = self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index]
-				if not files.endswith('.lg'):
+				
+				if not files.endswith('.lg') and sharedFunction.checkFile(files):
 					to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
+
 
 				#to_parse_list.append((self.parent_path[choose_index] + self.inkml_list[choose_index][inkml_index], self.param_list[choose_index]))
 				#print (to_parse_list)
@@ -112,16 +119,18 @@ class loadDatasetFileByFile:
 
 				
 			#print (to_parse_list)
-
-			dataset, target = CROHMEParser.ParseList(to_parse_list)
-
-			#print (dataset.shape)
-			#print (target.shape)
-
-			dataset_dat = self.loader.generateTensorDatasetFromCROHMENumpy(dataset, target)
 			
-			return dataset_dat
-		return False
+			dataset, target = sharedFunction.ParseList(to_parse_list)
+#			print (dataset.shape)
+#			print (target.shape)
+#			print(attentionGT.shape)
+#                        pdb.set_trace()
+			dataset_dat, attendGT = self.loader.generateTensorDatasetFromCROHMENumpy(dataset, target)
+#			attendGT = numpy.vstack(t_attendGT)
+			
+#			print(dataset_dat.shape)
+			return dataset_dat, attendGT
+		return False, False
 		#except Exception as e:
 		#	print ('Did you forget call \'init\'?')
 		#	print (e)
@@ -130,6 +139,7 @@ class loadDatasetFileByFile:
 	def init(self, path = "./../data/TrainINKML/"):
 		self.parent_path, self.inkml_list, self.folder_size, self.param_list = self.getFileList(path)
 		self.num_of_folder = len(self.parent_path)
+#		pdb.set_trace()
 
 	def getFileList(self, path = "./../data/TrainINKML/"):
 		inkml_list = []
@@ -164,9 +174,9 @@ class loadDatasetFileByFile:
 		return parent_path, inkml_list, folder_size, param_list
 
 
-#z = loadDatasetFileByFile()
+#z = loadDatasetFileByFile([('./../data/TrainINKML/KAIST/KME1G3_0_sub_10.inkml', (0.065,0) )])
 #z.init()
-#aa = z.getNextDataset(10)
+#aa = z.getNextDataset(1)
 #print (aa)
 
 #loader = Loader()
