@@ -33,7 +33,7 @@ loader = DL.loadDatasetFileByFile()
 
 #############
 testnet = testnetwork.TestingNetwork()
-testnet.loadModelFromFile('model/train/version_2609_74.mdl')
+#testnet.loadModelFromFile('model/train/version_2609_74.mdl')
 
 if using_cuda and cuda_avail:
 	testnet.model.cuda()
