@@ -1139,8 +1139,8 @@ def ParseList(toparse_list, padding = 20): #parse by inputed list
 		#print (len(temp_GT))
 
 		if len(parsed_im) == 0:
-			 print ('unable to parse ' + file)
-        	else:
+			print ('unable to parse ' + file)
+		else:
 			ParseResult.append(parsed_im)
 			t_textGT = np.asarray(t_textGT)
 			textGT.append(t_textGT)

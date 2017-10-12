@@ -204,14 +204,14 @@ class WAP(nn.Module):
 		FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
 		FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
 	
-                from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
-                from_h = from_h.view(-1, 1, 1)
-                from_h = from_h.repeat(1, 1, current_tensor_shape[2], current_tensor_shape[3])
+		from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
+		from_h = from_h.view(-1, 1, 1)
+		from_h = from_h.repeat(1, 1, current_tensor_shape[2], current_tensor_shape[3])
 
-                from_a = self.Coverage_MLP_From_A(FCN_Straight)
+		from_a = self.Coverage_MLP_From_A(FCN_Straight)
 		from_a = from_a.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 		
-                F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
+		F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
 		F_Straight = F_.transpose(1,3).contiguous()
 		F_Straight = F_.permute(0,2,3,1).contiguous()
 		F_Straight = F_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.Q_height)
@@ -219,7 +219,7 @@ class WAP(nn.Module):
 		from_b = from_b.transpose(0,1).contiguous().view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
                 
 	        #from_a = from_a + from_b + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
-	        from_a = from_a + from_b + from_h
+		from_a = from_a + from_b + from_h
 
 		alpha_mat = F.tanh(from_a)
 		alpha_straight = alpha_mat.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], self.va_len)
@@ -228,7 +228,7 @@ class WAP(nn.Module):
 		alpha_mat = alpha_mat.transpose(0,1).contiguous().view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
 		
 		alpha_mat = self.alpha_softmax(alpha_mat.view(current_tensor_shape[0], 512)).view(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3])
-                self.alpha_mat = torch.cat([self.alpha_mat, torch.unsqueeze(alpha_mat, dim = 1)], 1)
+		self.alpha_mat = torch.cat([self.alpha_mat, torch.unsqueeze(alpha_mat, dim = 1)], 1)
 			
 #			pdb.set_trace()
 		
@@ -395,9 +395,9 @@ class WAP(nn.Module):
 
 
 			# Get Input from h(t - 1)	
-                        from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
-                        from_h = from_h.view(-1, 1, 1)
-                        from_h = from_h.repeat(1, 1, current_tensor_shape[2], current_tensor_shape[3])
+			from_h = self.Coverage_MLP_From_H(GRU_hidden.view(current_tensor_shape[0], self.gru_hidden_size))
+			from_h = from_h.view(-1, 1, 1)
+			from_h = from_h.repeat(1, 1, current_tensor_shape[2], current_tensor_shape[3])
 			#from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
 			# New Approach
@@ -421,7 +421,7 @@ class WAP(nn.Module):
                         #) * torch.unsqueeze(beta_mat, dim=1)  + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3] * self.va_len).view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
 
 			#from_a = from_a + from_b + from_h.repeat(1, current_tensor_shape[2] * current_tensor_shape[3]).view(current_tensor_shape[0], self.va_len, current_tensor_shape[2], current_tensor_shape[3])
-                        from_a = from_a + from_b + from_h
+			from_a = from_a + from_b + from_h
 			#---------------
 
 

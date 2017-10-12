@@ -21,7 +21,7 @@ class TestingNetwork:
 	def __init__(self):
 		print ('network init')
 		self.all_loss = []
-                self.all_lossA = []
+		self.all_lossA = []
 		self.ite = 0
 		################################################
 		########## ATTRIBUTE INIT ######################
@@ -37,24 +37,24 @@ class TestingNetwork:
 		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
 		#self.model = Net()
 		#self.model = FCN()
-                conv_layers = [getattr(self.model, name) for name in dir(self.model) if type(getattr(self.model, name) )== type(self.model.conv1_3)]
-                conv_params = []
-                for c in conv_layers:
-                    for p in c.parameters():
-                        if (p.requires_grad):
-                            conv_params.append(p)
-                other_layers = [module[1] for module in self.model.named_modules() if type(module[1]) != type(self.model.conv1_3)]
-                other_layers = other_layers[1:]
-                other_layers = [l for l in other_layers if hasattr(l,'parameters')]
+		conv_layers = [getattr(self.model, name) for name in dir(self.model) if type(getattr(self.model, name) )== type(self.model.conv1_3)]
+		conv_params = []
+		for c in conv_layers:
+			for p in c.parameters():
+				if (p.requires_grad):
+					conv_params.append(p)
+		other_layers = [module[1] for module in self.model.named_modules() if type(module[1]) != type(self.model.conv1_3)]
+		other_layers = other_layers[1:]
+		other_layers = [l for l in other_layers if hasattr(l,'parameters')]
 		train_params= [] 
 		for l in other_layers:
-                    for p in l.parameters():             
-    		    	train_params.append(p)
+			for p in l.parameters():             
+				train_params.append(p)
                				
 		#self.optimizer = optim.SGD(train_params, lr=self.learning_rate, momentum=self.momentum,
 		#					 weight_decay = self.lr_decay_base)
 	                      
-                self.optimizer = optim.Adam([
+		self.optimizer = optim.Adam([
                         {'params': train_params},
                         {'params': conv_params, 'lr': 0.001}
                         #{'params': conv_params, 'lr': 1e-10}
@@ -135,7 +135,7 @@ class TestingNetwork:
 				self.learning_rate = self.learning_rate/1.5
 				print("Current learning rate: %.8f" % self.learning_rate)
 				self.optimizer.param_groups[0]['lr'] = self.learning_rate
-                                self.optimizer.param_groups[1]['lr'] /= 1.5
+				self.optimizer.param_groups[1]['lr'] /= 1.5
 				print(self.optimizer.param_groups[0]['lr'])
 
 			data, target = Variable(data.float()), Variable(target.long())
@@ -222,14 +222,14 @@ class TestingNetwork:
 #				pdb.set_trace()
 #			self.try_print();
                         #pdb.set_trace()
-                        self.model.Coverage_MLP_From_H
+			self.model.Coverage_MLP_From_H
 			self.optimizer.step() 
-                        print(list(self.model.conv3_1.parameters())[0].norm().cpu().data.numpy())
-                        print(list(self.model.Coverage_MLP_From_A.parameters())[0].norm().cpu().data.numpy())
+			#print(list(self.model.conv3_1.parameters())[0].norm().cpu().data.numpy())
+			#print(list(self.model.Coverage_MLP_From_A.parameters())[0].norm().cpu().data.numpy())
 
 			self.ite += 1
 			self.all_loss.append(loss.cpu().data.numpy())
-                        self.all_lossA.append(lossA.cpu().data.numpy())
+			self.all_lossA.append(lossA.cpu().data.numpy())
 			plt.ion()
 
 			if batch_idx % 1 == 0:
@@ -240,14 +240,14 @@ class TestingNetwork:
 				print('lossA',lossA)
 				if batch_idx > 1:
 					pass
-                        if self.ite % 500 == 0:
-                                plt.clf()
+					if self.ite % 500 == 0:
+						plt.clf()
 				plt.plot(self.all_loss)
-                                plt.savefig('figures/total_loss.png')
-                                plt.clf()
-                                plt.plot(self.all_lossA)
-                                plt.savefig('figures/total_lossA.png')
-                                plt.clf()
+				plt.savefig('figures/total_loss.png')
+				plt.clf()
+				plt.plot(self.all_lossA)
+				plt.savefig('figures/total_lossA.png')
+				plt.clf()
 				#plt.draw()
 			#break
 		

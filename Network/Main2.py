@@ -16,7 +16,7 @@ batch_size = NC.BATCH_SIZE
 ######### TESTING HARDWARE ##################
 #############################################
 
-using_cuda = True
+using_cuda = False
 cuda_avail = torch.cuda.is_available()
 
 #############################################
@@ -46,7 +46,7 @@ if using_cuda and cuda_avail:
 		testnet.model
 	#testnet.model.cuda()
 	testnet.setCudaState()
-        torch.cuda.manual_seed(2017)
+	torch.cuda.manual_seed(2017)
 
 #############################################
 ######### TRAINING AND TESTING ##############
@@ -80,7 +80,7 @@ for epoch in range(NC.EPOCH_COUNT):
 #		br = br + 1
 #		if br == 3:
 #			break
-#		break
+		break
 	if epoch%2 == 9:
 		for i in range(len(testnet.model.print_alpha_mat)):
 			plt.imshow(testnet.model.print_alpha_mat[i][0,:], cmap='gray', interpolation='nearest')
