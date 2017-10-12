@@ -71,7 +71,6 @@ class Loader:
 		return Tensor_train, train_target[1]
 
 	def getTensorDataset(self, input_data, target):
-		#pdb.set_trace()
 		return torch.utils.data.TensorDataset(input_data, target)
 
 class loadDatasetFileByFile:
@@ -81,7 +80,6 @@ class loadDatasetFileByFile:
 		try:
 			os.mkdir(parse_result_path)
 		except:
-#			pdb.set_trace()
 			pass
 
 	def getNextDataset(self, batch_size):
@@ -139,7 +137,6 @@ class loadDatasetFileByFile:
 	def init(self, path = "./../data/TrainINKML/"):
 		self.parent_path, self.inkml_list, self.folder_size, self.param_list = self.getFileList(path)
 		self.num_of_folder = len(self.parent_path)
-#		pdb.set_trace()
 
 	def getFileList(self, path = "./../data/TrainINKML/"):
 		inkml_list = []

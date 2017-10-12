@@ -171,10 +171,8 @@ class TestingNetwork:
 				ignore_block =Variable(torch.FloatTensor(ignore_block))
 				
 			
-#			target_vec = target.cpu().data.numpy()
-#			pdb.set_trace()
 			#print('output', output)
-#			pdb.set_trace()
+			
 			if True:
 				#for b_id in range(NetWorkConfig.BATCH_SIZE):
 				#	for s_id in range(50):
@@ -216,7 +214,6 @@ class TestingNetwork:
 
 			loss.backward()
 			self.grad_clip()
-                        #pdb.set_trace()
 			if (epoch % 20 == 0):
 				pass
 #				pdb.set_trace()
@@ -311,7 +308,10 @@ class TestingNetwork:
 
 			data, target = Variable(data.float()), Variable(target.long())
 			
-			output = self.model(data)
+			#output = self.model(data)
+			
+			output = self.model.forwardTest(data)
+			
 			#print('output', output)
 			
 

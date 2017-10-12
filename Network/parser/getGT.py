@@ -20,9 +20,7 @@ import collections
 import NetWorkConfig
 import pdb 
 
-
 def readSymbolfile(path):
-#	pdb.set_trace()
 	assert(os.path.exists(path))
 	with open(path, 'r') as f:
 		return f.read().replace("\n", " ").split()
@@ -128,7 +126,6 @@ def parseGT(root, text, ignoreElems):
 	if len(root) == 0:
 		temp = modifiedText(root.text)
 		text.append(temp)
-
 		return
 	else:
 	#	print(root.tag[length+6:])
@@ -418,8 +415,6 @@ def makeGTidVec(path_to_ink, path_to_symbol):
 	#data = ['\\forall', 'g', '\\in', 'G'] 
 	#print(touchGT(path_to_ink))
 	root = getRoot(path_to_ink)
-#	attention_list = CROHMEParser.parseOfficialV_4(path_to_ink)
-#	print(attention_list)
 	ignoreElems = ['traceFormat','annotation','trace','traceGroup']
 	text = []
 	#--------- PTP Fix : Add Start/ End and padding token
@@ -432,6 +427,8 @@ def makeGTidVec(path_to_ink, path_to_symbol):
 	for i in range(need_to_pad):
 		text.append('$P')
 	print ('gt', text)
+	
+#	print ('gt', text)
 	
 	#print (vector)
 #	tensor = torch.LongTensor(vector)
@@ -475,7 +472,7 @@ def makeOneshotGT(path_to_ink, path_to_symbol):
 	
 	for i in range(need_to_pad):
 		text.append('$P')
-	print ('gt', text)
+#	print ('gt', text)
 	preplaceW2ID(text, word_to_id)
 	vector = replaceW2ID(text, word_to_id)
 #	print('vector', vector)

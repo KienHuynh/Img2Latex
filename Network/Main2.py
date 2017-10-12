@@ -66,7 +66,6 @@ for epoch in range(NC.EPOCH_COUNT):
 		train_data, attendGT= loader.getNextDataset(batch_size)
 
 		if train_data == False:
-#			pdb.set_trace()
 			break
 
 		train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
@@ -80,7 +79,7 @@ for epoch in range(NC.EPOCH_COUNT):
 #		br = br + 1
 #		if br == 3:
 #			break
-		break
+		#break
 	if epoch%2 == 9:
 		for i in range(len(testnet.model.print_alpha_mat)):
 			plt.imshow(testnet.model.print_alpha_mat[i][0,:], cmap='gray', interpolation='nearest')
