@@ -301,7 +301,7 @@ def prase_list(toparse_list, padding = 20):
         if len(temp_img) == 0:
             print ('unable to parse ' + file)
         else:
-            ParseResult.append(temp_img)
-            GTResult.append(temp_label)
+            imgs.append(temp_img)
+            labels.append(temp_label)
     
     return np.asarray(ParseResult), np.asarray(GTResult)
