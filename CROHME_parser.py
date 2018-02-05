@@ -223,8 +223,7 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
 
             processing_text = processing_text.replace(',', '')
             processing_text = processing_text.replace('\n', '')
-            raw_vertex_list = processing_text.split(' ')
-            
+            raw_vertex_list = processing_text.split(' ') 
 
             for i in range(int(len(raw_vertex_list) / vertexlen)):
                 x = float(raw_vertex_list[vertexlen * i])
@@ -285,18 +284,19 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
     return [output]
 
 
-def prase_list(toparse_list, padding = 20):
+def prase_list(toparse_list, scale_factors, padding = 20):
     """parse_list
     Parse a list of inkml files into images
     :param toparse_list: list of full paths to inkml files
+    :param scale_factors: list of scale factors (float) corresponding to the files in toparse_list
     :param padding: 
     """
     imgs = []
     labels = []
     
-    for filedata in toparse_list:
-        temp_img = inkml2img(filedata[0], filedata[1][0], padding = padding)
-        temp_label = get_gt.read_latex_label(filedata[0], './mathsymbolclass.txt')
+    for i, file_path in enumerate(toparse_list):
+        temp_img = inkml2img(file_path, scale_factors[i], padding = padding)
+        temp_label = get_gt.read_latex_label(file_path, './mathsymbolclass.txt')
        
         if len(temp_img) == 0:
             print ('unable to parse ' + file)
