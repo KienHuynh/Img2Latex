@@ -1,4 +1,4 @@
-# MER
+# Image to latex
 Mathematical expression recognition
 
 Generating latex strings from math equation images using LSTM.
