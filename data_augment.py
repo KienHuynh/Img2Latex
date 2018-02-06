@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.misc
+from skimage.color import rgb2hsv, hsv2rgb
 
 import pdb
 
@@ -76,5 +77,40 @@ def random_scale(img, min_scale, max_scale, min_pad=10):
     return img_scale
 
 
-def random_hue():
-    abc = 1
+def random_hue(img):
+    """random_hue
+    Change the hue of the symbols in the image
+    
+    :param img: numpy array, image
+    """
+    num_zero = np.sum(img == 0)
+    num_one = np.sum(img == 1)
+    
+    # Decide background value
+    bg_value = 1
+    if (num_zero > num_one):
+        bg_value = 0
+
+    bg_pixel_ind = img == bg_value
+    
+    img_rgb = (img * 255).astype(np.uint8)
+    img_hsv = rgb2hsv(img_rgb)
+    hue = np.random.uniform(0, 1)
+    sat = np.random.uniform(0, 1)
+    
+    # Black background => symbol pixels must be bright
+    # White background => symbol pixels must be dark
+    val = np.random.uniform(0, 0.7)
+    if (bg_value == 0):
+        val = np.random.uniform(0.3, 1)
+
+    img_hsv[:,:,0] = hue
+    img_hsv[:,:,1] = sat
+    img_hsv[:,:,2] = val
+    img_hsv[img_hsv > 1] = 1
+    img_hsv[img_hsv < 0] = 0
+    img_rgb = hsv2rgb(img_hsv)
+    img_rgb[bg_pixel_ind] = bg_value
+
+    #pdb.set_trace()
+    return img_rgb
