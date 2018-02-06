@@ -1,5 +1,5 @@
 import numpy as np
-from skimage.transform import rescale
+import scipy.misc
 
 import pdb
 
@@ -36,8 +36,11 @@ def random_scale(img, min_scale, max_scale, min_pad=10):
     
     max_scale = min(float(imh) / float(eqh), float(imw) / float(eqw), max_scale)
     # Start scaling
-    scale_factor = ((max_scale - min_scale)/2) * np.random.normal() + min_scale
-    img_scale = rescale(img, scale_factor)
+    scale_factor = np.random.uniform(min_scale, max_scale)
+
+    print(scale_factor)
+    #img_scale = rescale(img, scale_factor)
+    img_scale = scipy.misc.imresize(img, scale_factor, interp='bicubic')
 
     # Cropping
     # Find pixels that are != 0 to avoid cropping them from the image
