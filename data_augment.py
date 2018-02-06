@@ -15,7 +15,7 @@ def gray2rgb(img):
     return np.concatenate((img, img, img), axis = 2)
 
 
-def random_scale(img, min_scale, max_scale, min_pad=10):
+def random_scale(img, min_scale, max_scale, min_pad):
     """random_scale
     This function scales the input image using a random float value ranged from min_scale to max_scale then crops it back to the original size
 
@@ -51,7 +51,15 @@ def random_scale(img, min_scale, max_scale, min_pad=10):
     col_sum = np.where(col_sum != 0)[0]
     row_sum = np.sum(img_scale, axis=(1,2))
     row_sum = np.where(row_sum != 0)[0]
-    
+
+    y_min = row_sum[0]
+    y_max = row_sum[-1]
+    x_min = col_sum[0]
+    x_max = col_sum[-1]
+    #pdb.set_trace()
+    if (y_max - y_min) + 2 * min_pad > imh or (x_max - x_min) + 2 * min_pad > imw:
+        return img
+
     y_min = row_sum[0] - min_pad
     y_max = row_sum[-1] + min_pad
     x_min = col_sum[0] - min_pad
