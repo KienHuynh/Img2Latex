@@ -9,13 +9,14 @@ CROHME 2013, you can download it [here](http://www.iapr-tc11.org/mediawiki/index
 
 After downloading, your dataset directory should be structured as follow:
 
-* CROHME2013
-    * TrainINKML
-      * expressmatch
-      * HAMEX
-      * KAIST
-      * MathBrush
-      * MfrDB
-    * TestINKML
+* data
+    * CROHME2013
+        * TrainINKML
+            * expressmatch
+            * HAMEX
+            * KAIST
+            * MathBrush
+            * MfrDB
+        * TestINKML
 
 You can modify the DATASET_PATH in config.py to point to the location of your CROHME2013 folder.
