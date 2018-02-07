@@ -1,0 +1,9 @@
+MAX_TOKEN_LEN = 90
+NUM_OF_TOKEN = 114
+BATCH_SIZE = 1
+
+NUM_EPOCH = 50
+
+DATASET_PATH = './../data/TrainINKML/'
+
+MODEL_FOLDER = './model/train/'
