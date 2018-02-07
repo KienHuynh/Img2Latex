@@ -17,6 +17,5 @@ After downloading, your dataset directory should be structured as follow:
       * MathBrush
       * MfrDB
     * TestINKML
-      * TEST
 
 You can modify the DATASET_PATH in config.py to point to the location of your CROHME2013 folder.
