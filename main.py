@@ -24,8 +24,8 @@ def data_batching(file_list, scale_factor):
     return batch
 
 def train():
-    use_cuda = cfg.CUDA
+    use_cuda = cfg.CUDA and torch.cuda.is_available()
     save_path = cfg.MODEL_FOLDER
+    dataset_path = cfg 
     
     # Get full paths to train inkml files
-
