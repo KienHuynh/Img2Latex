@@ -2,6 +2,11 @@ from get_gt import *
 from CROHME_parser import *
 import config as cfg
 
+import torch
+
+import glob
+
+import pdb
 
 def data_batching(file_list, scale_factor):
     """data_batching
@@ -23,9 +28,47 @@ def data_batching(file_list, scale_factor):
 
     return batch
 
-def train():
+def train():    
+    # Getting settings from config.py
+    max_len = cfg.MAX_TOKEN_LEN
+    num_token = cfg.NUM_OF_TOKEN
+    imw = cfg.IMW
+    imh = cfg.IMH    
+
+    batch_size = cfg.BATCH_SIZE
+    lr = cfg.LR
+    num_e = cfg.NUM_EPOCH
+    last_e = 0
+
     use_cuda = cfg.CUDA and torch.cuda.is_available()
     save_path = cfg.MODEL_FOLDER
-    dataset_path = cfg 
-    
+    dataset_path = cfg.DATASET_PATH + 'CROHME2013_data/TrainINKML/'
+    subset_list = cfg.SUBSET_LIST
+    scale_factors = cfg.SCALE_FACTORS
+
     # Get full paths to train inkml files
+    inkml_list = []
+    scale_list = []
+    for i, subset in enumerate(subset_list):
+        subset_inkml_list = glob.glob(dataset_path + subset + '*.inkml')
+        inkml_list += subset_inkml_list 
+        scale_list += [scale_factors[i]] * len(subset_inkml_list)
+    inkml_list = np.asarray(inkml_list)
+    scale_list = np.asarray(scale_list)
+
+    num_train = len(inkml_list)
+
+    for e in range(last_e, num_e):
+        permu_ind = np.random.permutation(range(num_train))
+        inkml_list = inkml_list[permu_ind]
+        pdb.set_trace()
+        last_e = e 
+     
+    pdb.set_trace() 
+
+if __name__ == '__main__':
+    # Set random seeds for reproducibility
+    np.random.seed(1311)
+    torch.manual_seed(1311)
+
+    train()
