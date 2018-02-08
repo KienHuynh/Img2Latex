@@ -54,7 +54,6 @@ def random_scale(img, min_scale, max_scale, min_pad=0):
     # Start scaling
     scale_factor = np.random.uniform(min_scale, max_scale)
 
-    print(scale_factor)
     #img_scale = rescale(img, scale_factor)
     img_scale = scipy.misc.imresize(img, scale_factor, interp='bicubic')
 
