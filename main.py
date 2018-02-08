@@ -1,5 +1,6 @@
 from get_gt import *
 from CROHME_parser import *
+from data_augment import *
 import config as cfg
 
 import torch
@@ -8,12 +9,12 @@ import glob
 
 import pdb
 
-def data_batching(file_list, scale_factor):
-    """data_batching
+def batch_data(file_list, scale_list, train):
+    """batch_data
     This function will batch some images for training/testing purpose.
 
     :param file_list: list of strings, each string is the full path to an inkml file.
-    :param scale_factor: float, scale factor to be used when render inkml data into a numpy image.
+    :param scale_list: list of float values, scale factors to be used when render inkml data into a numpy image.
     """
     imh = cfg.IMH
     imw = cfg.IMW
@@ -21,9 +22,11 @@ def data_batching(file_list, scale_factor):
     batch = np.zeros((imh,imw,3,batch_size), dtype=np.float32)
 
     for i, f in enumerate(file_list):
+        scale_factor = scale_list[i]
         img = inkml2img(f, scale_factor, target_width=imw, target_height=imh)[0]
         img = gray2rgb(img)
-        img = random_transform(img)
+        if (train):
+            img = random_transform(img)
         batch[:,:,:,i] = img
 
     return batch
@@ -61,8 +64,17 @@ def train():
     for e in range(last_e, num_e):
         permu_ind = np.random.permutation(range(num_train))
         inkml_list = inkml_list[permu_ind]
-        pdb.set_trace()
-        last_e = e 
+        scale_list = scale_list[permu_ind]
+        num_ite = int(np.ceil(1.0*num_train/batch_size))
+        
+        for i in range(num_ite):
+            batch_idx = range(i*batch_size, (i+1)*batch_size)
+            if (batch_idx[-1] >= num_train):
+                batch_idx = range(i*batch_size, num_train)
+        
+            batch_x = batch_data(inkml_list[batch_idx], scale_list[batch_idx], True)
+            pdb.set_trace()
+        last_e = e
      
     pdb.set_trace() 
 
