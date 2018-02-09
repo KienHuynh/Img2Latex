@@ -48,6 +48,9 @@ def train():
     dataset_path = cfg.DATASET_PATH + 'CROHME2013_data/TrainINKML/'
     subset_list = cfg.SUBSET_LIST
     scale_factors = cfg.SCALE_FACTORS
+    
+    # Load network
+    
 
     # Get full paths to train inkml files
     inkml_list = []

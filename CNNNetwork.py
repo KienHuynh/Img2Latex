@@ -1,4 +1,3 @@
-from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -59,15 +58,7 @@ class TestingNetwork:
                         {'params': conv_params, 'lr': 0.001}
                         #{'params': conv_params, 'lr': 1e-10}
                                         ], lr=self.learning_rate)
-		#self.optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=self.momentum)
-		self.NLLloss = nn.NLLLoss2d()
-		self.NLLloss1 = nn.NLLLoss()
-		
-		if NetWorkConfig.CURRENT_MACHINE == 0:
-			self.criterion = nn.CrossEntropyLoss(ignore_index=1)
-			self.criterion1 = nn.KLDivLoss()
-		else:
-			self.criterion = nn.CrossEntropyLoss()
+		self.criterion = nn.CrossEntropyLoss(ignore_index=1)
 		
 	def grad_clip(self, max_grad = 1):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
@@ -81,9 +72,7 @@ class TestingNetwork:
 				magnitude = torch.sqrt(torch.sum(p_grad**2))  
 				if (magnitude.data[0] > max_grad):
 					p_grad.data = (max_grad*p_grad/magnitude.data[0]).data
-					
-					
-					
+									
 	def try_print(self, print_flag = True):
 		params = [p for p in list(self.model.parameters()) if p.requires_grad==True]
 		for p in params:
@@ -149,29 +138,8 @@ class TestingNetwork:
 				attendGT = Variable(torch.FloatTensor(self.attendGT))
 			ignore_block = numpy.zeros((1,89,16,32))
 			ignore_vecs = numpy.zeros((1, 89, 1, 1))
-			for batch_index in range(NetWorkConfig.BATCH_SIZE):
-				target_vec = target[batch_index].cpu().data.numpy()
-				
-				ignore_vec= numpy.copy(target_vec)
-				ignore_vec[ignore_vec==1]=-1
-				ignore_vec[ignore_vec!=-1]=1
-				ignore_vec[ignore_vec==-1]=0
-				ignore_vec = ignore_vec[1:]
-				ignore_vec = numpy.reshape(ignore_vec, (1,89,1,1))
-				ignore_vecs = numpy.concatenate((ignore_vecs, ignore_vec), axis=0)
-				ignore_map = numpy.tile(ignore_vec, (1,1,16,32))
-				ignore_block = numpy.concatenate((ignore_block, ignore_map),0)
 			ignore_block = ignore_block[1:,:,:,:]
-				
-			if self.using_cuda:
-				attendGT = Variable(torch.FloatTensor(self.attendGT)).cuda()
-				ignore_block =Variable(torch.FloatTensor(ignore_block)).cuda()
-			else:
-				attendGT = Variable(torch.FloatTensor(self.attendGT))
-				ignore_block =Variable(torch.FloatTensor(ignore_block))
-				
-			
-			#print('output', output)
+			# print('output', output)
 			
 			if True:
 				#for b_id in range(NetWorkConfig.BATCH_SIZE):
@@ -206,7 +174,7 @@ class TestingNetwork:
 
 				loss = self.criterion(output, target)
 #				pdb.set_trace()
-				lossA = 10*torch.sum(attendGT * (torch.log(attendGT)-torch.log(attendOut))*ignore_block)/numpy.sum(ignore_vecs)
+				#lossA = 10*torch.sum(attendGT * (torch.log(attendGT)-torch.log(attendOut))*ignore_block)/numpy.sum(ignore_vecs)
                                 
 				loss = loss + lossA 
 			else :
