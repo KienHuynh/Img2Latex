@@ -4,6 +4,8 @@ from data_augment import *
 import config as cfg
 
 import torch
+from attend_GRU import AGRU
+import get_gt
 
 import glob
 
@@ -31,6 +33,17 @@ def batch_data(file_list, scale_list, train):
 
     return batch
 
+
+def get_layers(net, g):
+    """get_layers
+    Return a list of NN layers statisfying the condition specified in the lambda function
+
+    :param net: the network
+    :param g: lambda function that takes in a torch NN layer and return a boolean value
+    """
+    return [module[1] for module in net.named_modules() if g(module[1])]
+
+
 def train():    
     # Getting settings from config.py
     max_len = cfg.MAX_TOKEN_LEN
@@ -40,6 +53,8 @@ def train():
 
     batch_size = cfg.BATCH_SIZE
     lr = cfg.LR
+    momentum = cfg.MOMENTUM
+    lr_decay = cfg.LR_DECAY
     num_e = cfg.NUM_EPOCH
     last_e = 0
 
@@ -47,12 +62,44 @@ def train():
     save_path = cfg.MODEL_FOLDER
     dataset_path = cfg.DATASET_PATH + 'CROHME2013_data/TrainINKML/'
     subset_list = cfg.SUBSET_LIST
-    scale_factors = cfg.SCALE_FACTORS
-    
-    # Load network
-    
+    scale_factors = cfg.SCALE_FACTORS    
+    pdb.set_trace()
+    # Load the vocab dictionary for display purpose
+    _, id_to_word = get_gt.build_vocab('mathsymbolclass.txt')
 
-    # Get full paths to train inkml files
+    # Load network
+    net =  AGRU()
+    
+    # Get a list of convolutional layers
+    conv_layers = get_layers(net, lambda x: type(x) == type(net.conv1_3))
+ 
+    # Get conv parameters 
+    conv_params = []    
+    for c in conv_layers:
+        for p in c.parameters():
+            if (p.requires_grad):
+                conv_params.append(p)
+
+    # Get a list of layers that are not convolutional
+    other_layers = get_layers(net, lambda x: type(x) != type(net.conv1_3) and hasattr(x, 'parameters'))
+    other_layers = other_layers[1:] # The first layer is attend_GRU.AGRU
+    
+    # Get GRU parameters
+    gru_params= [] 
+    for l in other_layers:
+        for p in l.parameters():             
+            gru_params.append(p)
+                           
+    # Set a different learning rate for conv layers and GRU layers
+    self.optimizer = optim.Adam([
+                    {'params': gru_params},
+                    {'params': conv_params, 'lr': 0.001}
+                    #{'params': conv_params, 'lr': 1e-10}
+                                    ], lr=self.learning_rate)
+    self.criterion = nn.CrossEntropyLoss(ignore_index=1)
+
+
+    # Get full paths to train inkml files, create a list of scale factors to be used for rendering train images
     inkml_list = []
     scale_list = []
     for i, subset in enumerate(subset_list):
@@ -80,6 +127,7 @@ def train():
         last_e = e
      
     pdb.set_trace() 
+
 
 if __name__ == '__main__':
     # Set random seeds for reproducibility
