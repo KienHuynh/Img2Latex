@@ -10,12 +10,13 @@ LR = 0.0001
 LR_DECAY = 1/1.15
 MOMENTUM = 0.9
 BATCH_SIZE = 16
+SAVE_STEP = 2
 
 CUDA = True
 
 # Path settings
 DATASET_PATH = './../data/'
-MODEL_FOLDER = './model/train/'
+MODEL_FOLDER = './trained/'
 
 # Subdataset settings
 SUBSET_LIST = ['expressmatch/', 'HAMEX/', 'KAIST/', 'MathBrush/', 'MfrDB/']
