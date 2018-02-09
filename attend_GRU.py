@@ -8,16 +8,16 @@ from torch.autograd import Variable
 import numpy
 
 from torch.nn import Parameter
-import NetWorkConfig
+import config as cfg
 
 import pdb
 import math
 
 import sys
 sys.path.insert(0, './parser')
-import getGT
+import get_gt
 
-class WAP(nn.Module):
+class AGRU(nn.Module):
 	def __init__(self):
 		self.using_cuda = False
 
@@ -30,7 +30,7 @@ class WAP(nn.Module):
 		#######################################################
 		## NETWORK STRUCTURE
 	
-		super(WAP, self).__init__()
+		super(AGRU, self).__init__()
 		self.conv1_1 = nn.Conv2d(9, 32, 3, stride=1,padding=1)
 		self.conv1_1_bn = nn.BatchNorm2d(32)
 		self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
@@ -89,8 +89,8 @@ class WAP(nn.Module):
 		# Expect size: 1 x 128 (1 x self.gru_hidden_size)
 		# The hard code "128" down there is the height of FCN Result
 		
-		#self.embeds = nn.Embedding(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
-		self.embeds_temp = nn.Linear(NetWorkConfig.NUM_OF_TOKEN, self.embed_dimension) 
+		#self.embeds = nn.Embedding(cfg.NUM_OF_TOKEN, self.embed_dimension) 
+		self.embeds_temp = nn.Linear(cfg.NUM_OF_TOKEN, self.embed_dimension) 
 		self.FC_Wyz = nn.Linear(self.embed_dimension, self.gru_hidden_size)
 		self.FC_Uhz = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
 		self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
@@ -103,7 +103,7 @@ class WAP(nn.Module):
 		self.FC_Urh = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
 		self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
 			
-		self.FC_Wo = nn.Linear(self.embed_dimension, NetWorkConfig.NUM_OF_TOKEN) #
+		self.FC_Wo = nn.Linear(self.embed_dimension, cfg.NUM_OF_TOKEN) #
 		self.FC_Wh = nn.Linear(self.gru_hidden_size, self.embed_dimension) # for (11)
 		self.FC_Wc = nn.Linear(128, self.embed_dimension) #
 		
@@ -126,7 +126,7 @@ class WAP(nn.Module):
 		#self.testnn = nn.Linear(65536, 128)
 		
 
-		self.word_to_id, self.id_to_word = getGT.buildVocab('./parser/mathsymbolclass.txt')
+		self.word_to_id, self.id_to_word = get_gt.build_vocab('./mathsymbolclass.txt')
 		
 	def setCuda(self, state):
 		self.using_cuda = state
@@ -180,7 +180,7 @@ class WAP(nn.Module):
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		################ DEFINITION ########################################
 		
-		start_vector = numpy.zeros((current_tensor_shape[0],1,NetWorkConfig.NUM_OF_TOKEN))
+		start_vector = numpy.zeros((current_tensor_shape[0],1,cfg.NUM_OF_TOKEN))
 		start_vector[:,0,self.word_to_id['<s>']] = 1
 
 		if self.using_cuda:
@@ -191,7 +191,7 @@ class WAP(nn.Module):
 			#Init Alpha and Beta Matrix
 			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).cuda().zero_(), requires_grad=True)
-			self.alpha_mat = Variable(torch.zeros(NetWorkConfig.BATCH_SIZE, 1, current_tensor_shape[2],current_tensor_shape[3]).cuda())
+			self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, current_tensor_shape[2],current_tensor_shape[3]).cuda())
 		else:
 			#GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], 128))
 			GRU_hidden = Variable(torch.FloatTensor(current_tensor_shape[0], self.gru_hidden_size).zero_())
@@ -200,7 +200,7 @@ class WAP(nn.Module):
 			#Init Alpha and Beta Matrix
 			alpha_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).fill_(1.0 / float(num_of_block)), requires_grad=True)
 			beta_mat = Variable(torch.FloatTensor(current_tensor_shape[0], current_tensor_shape[2], current_tensor_shape[3]).zero_(), requires_grad=True)
-			self.alpha_mat = Variable(torch.zeros(NetWorkConfig.BATCH_SIZE, 1, current_tensor_shape[2],current_tensor_shape[3]))
+			self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, current_tensor_shape[2],current_tensor_shape[3]))
 		FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
 		FCN_Straight = FCN_Straight.view(current_tensor_shape[0] * current_tensor_shape[2] * current_tensor_shape[3], current_tensor_shape[1])
 	
@@ -256,7 +256,7 @@ class WAP(nn.Module):
 #		self.t_alpha_mat = []
 		self.print_alpha_mat =[]
 		
-		for RNN_iterate in range (NetWorkConfig.MAX_TOKEN_LEN - 1):
+		for RNN_iterate in range (cfg.MAX_TOKEN_LEN - 1):
 
 			#print (alpha_mat.cpu().data.numpy().shape)
 		
@@ -279,7 +279,7 @@ class WAP(nn.Module):
 			#multiplied_mat = multiplied_mat * expanded_alpha_mat
 					
 			# Sum all vector after element-wise multiply to get Ct
-			if NetWorkConfig.CURRENT_MACHINE == 0:
+			if cfg.CURRENT_MACHINE == 0:
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
 				multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 			else:
@@ -299,7 +299,7 @@ class WAP(nn.Module):
 			if self.training == True:
 				
 				last_expected_id = self.GT[:, RNN_iterate]
-				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+				last_expected_np = numpy.zeros((current_tensor_shape[0], cfg.NUM_OF_TOKEN))
 				for i in range(current_tensor_shape[0]):
 					last_expected_np[i, last_expected_id[i]] = 1
 				
@@ -318,7 +318,7 @@ class WAP(nn.Module):
 				#if last_predicted_id[0] != 19:
 				#	print('---------------------')
 
-				last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+				last_expected_np = numpy.zeros((current_tensor_shape[0], cfg.NUM_OF_TOKEN))
 					
 
 							
@@ -363,7 +363,7 @@ class WAP(nn.Module):
 			########################################################################################
 
 			#return_vector = Variable(torch.squeeze(GRU_output.data, dim = 1))
-			return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+			return_vector = GRU_output.view(current_tensor_shape[0], cfg.NUM_OF_TOKEN)
 			
 			# return_vector = F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1)))
 			# return_tensor = torch.cat([return_tensor, torch.unsqueeze(F.softmax(Variable(torch.squeeze(GRU_output.data, dim = 1))), dim = 1)], 1)
@@ -516,7 +516,7 @@ class WAP(nn.Module):
 		num_of_block = current_tensor_shape[2] * current_tensor_shape[3]
 		################ DEFINITION ########################################
 		
-		start_vector = numpy.zeros((current_tensor_shape[0],1,NetWorkConfig.NUM_OF_TOKEN))
+		start_vector = numpy.zeros((current_tensor_shape[0],1,cfg.NUM_OF_TOKEN))
 		start_vector[:,0,self.word_to_id['<s>']] = 1
 
 		if self.using_cuda:
@@ -563,7 +563,7 @@ class WAP(nn.Module):
 		is_predicting = True
 
 
-		for RNN_iterate in range (2 * NetWorkConfig.MAX_TOKEN_LEN - 2):
+		for RNN_iterate in range (2 * cfg.MAX_TOKEN_LEN - 2):
 
 			if is_predicting:
 				is_predicting = False
@@ -575,7 +575,7 @@ class WAP(nn.Module):
 				multiplied_mat = multiplied_mat * expanded_alpha_mat
 				
 				# Sum all vector after element-wise multiply to get Ct
-				if NetWorkConfig.CURRENT_MACHINE == 0:
+				if cfg.CURRENT_MACHINE == 0:
 					multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
 					multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 				else:
@@ -595,7 +595,7 @@ class WAP(nn.Module):
 				if self.training == True:
 					
 					last_expected_id = self.GT[:, int(RNN_iterate / 2)]
-					last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+					last_expected_np = numpy.zeros((current_tensor_shape[0], cfg.NUM_OF_TOKEN))
 					for i in range(current_tensor_shape[0]):
 						last_expected_np[i, last_expected_id[i]] = 1
 					
@@ -614,7 +614,7 @@ class WAP(nn.Module):
 					#if last_predicted_id[0] != 19:
 					#	print('---------------------')
 
-					last_expected_np = numpy.zeros((current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN))
+					last_expected_np = numpy.zeros((current_tensor_shape[0], cfg.NUM_OF_TOKEN))
 						
 
 								
@@ -656,7 +656,7 @@ class WAP(nn.Module):
 				################### GRU SECTION ########################################################
 				########################################################################################
 
-				return_vector = GRU_output.view(current_tensor_shape[0], NetWorkConfig.NUM_OF_TOKEN)
+				return_vector = GRU_output.view(current_tensor_shape[0], cfg.NUM_OF_TOKEN)
 				
 
 				#print(self.id_to_word[return_vector.max(1)[1].data.numpy()[0,0]])
@@ -730,7 +730,7 @@ class WAP(nn.Module):
 				multiplied_mat = multiplied_mat * expanded_alpha_mat
 				
 				# Sum all vector after element-wise multiply to get Ct
-				if NetWorkConfig.CURRENT_MACHINE == 0:
+				if cfg.CURRENT_MACHINE == 0:
 					multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
 					multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
 				else:
@@ -772,7 +772,7 @@ class WAP(nn.Module):
 
 
 
-				last_expected_np = numpy.zeros((current_tensor_shape[0] * beam_size, NetWorkConfig.NUM_OF_TOKEN))
+				last_expected_np = numpy.zeros((current_tensor_shape[0] * beam_size, cfg.NUM_OF_TOKEN))
 				multiplied_mat = multiplied_mat.repeat(beam_size, 1)
 				GRU_hidden_eval = GRU_hidden.repeat(beam_size, 1)
 
@@ -813,7 +813,7 @@ class WAP(nn.Module):
 				GRU_output_temp = self.FC_Wo(embedded + self.FC_Wh(GRU_hidden_eval) + self.FC_Wc(multiplied_mat)) 
 				
 			
-				return_vector_temp = GRU_output_temp.view(current_tensor_shape[0] * beam_size, NetWorkConfig.NUM_OF_TOKEN)
+				return_vector_temp = GRU_output_temp.view(current_tensor_shape[0] * beam_size, cfg.NUM_OF_TOKEN)
 				
 				##################################
 				####### GETTING MAX ##############
@@ -849,7 +849,7 @@ class WAP(nn.Module):
 				else:
 					return_vector = Variable(torch.FloatTensor(return_vector))
 
-				return_vector = return_vector.view(1, NetWorkConfig.NUM_OF_TOKEN)
+				return_vector = return_vector.view(1, cfg.NUM_OF_TOKEN)
 
 				return_tensor = torch.cat([return_tensor, torch.unsqueeze(return_vector, dim = 1)], 1)
 				
