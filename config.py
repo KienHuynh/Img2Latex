@@ -7,6 +7,8 @@ IMW = 512
 # Training settings
 NUM_EPOCH = 50
 LR = 0.0001
+LR_DECAY = 1/1.15
+MOMENTUM = 0.9
 BATCH_SIZE = 16
 
 CUDA = True
