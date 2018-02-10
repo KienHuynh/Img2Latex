@@ -1,24 +1,22 @@
-from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
 from torch.autograd import Variable
+from torch.nn import Parameter
 import numpy as np
 
-from torch.nn import Parameter
 import config as cfg
 
-import pdb
-import math
-
 import sys
-sys.path.insert(0, './parser')
 import get_gt
+
+import pdb
+import scipy.misc
 
 class AGRU(nn.Module):
     def __init__(self):
+        self.step = 0
         #######################################################
         ## PARAMETER DIFINITION
         self.gru_hidden_size = 256
@@ -29,63 +27,61 @@ class AGRU(nn.Module):
         ## NETWORK STRUCTURE
     
         super(AGRU, self).__init__()
-        self.conv1_1 = nn.Conv2d(3, 32, 3, stride=1,padding=1)
+        self.conv1_1 = nn.Conv2d(3, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_1_bn = nn.BatchNorm2d(32)
-        self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_2_bn = nn.BatchNorm2d(32)
-        self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        self.conv1_3 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_3_bn = nn.BatchNorm2d(32)
-        self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1,padding=1)
+        self.conv1_4 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_4_bn = nn.BatchNorm2d(32)
         
         self.pool_1 = nn.MaxPool2d(2, stride=2)
         
-        self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1,padding=1)
+        self.conv2_1 = nn.Conv2d(32, 64, 3, stride=1, padding=1, bias=False)
         self.conv2_1_bn = nn.BatchNorm2d(64)
-        self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv2_2 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv2_2_bn = nn.BatchNorm2d(64)
-        self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv2_3 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv2_3_bn = nn.BatchNorm2d(64)
-        self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv2_4 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv2_4_bn = nn.BatchNorm2d(64)
         
         self.pool_2 = nn.MaxPool2d(2, stride=2)
-        self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv3_1_bn = nn.BatchNorm2d(64)
-        self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv3_2_bn = nn.BatchNorm2d(64)
-        self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv3_3_bn = nn.BatchNorm2d(64)
-        self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1,padding=1)
+        self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         self.conv3_4_bn = nn.BatchNorm2d(64)
         
         self.pool_3 = nn.MaxPool2d(2, stride=2)
         
-        self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1,padding=1)
+        self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1, padding=1, bias=False)
         self.conv4_1_bn = nn.BatchNorm2d(128)
         self.conv4_1_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
         self.conv4_2_bn = nn.BatchNorm2d(128)
         self.conv4_2_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
         self.conv4_3_bn = nn.BatchNorm2d(128)
         self.conv4_3_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1,padding=1)
+        self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
         self.conv4_4_bn = nn.BatchNorm2d(128)
         self.conv4_4_drop = nn.Dropout2d(p = 0.025)
-        
-        
+         
         self.pool_4 = nn.MaxPool2d(2, stride=2)
 
-
-        
+        self.leaky_relu = nn.LeakyReLU(0.01)
 
         # Temp Declaration
         # z : update
         # h : reset
         # r : candidate
         # Expect size: 1 x 128 (1 x self.gru_hidden_size)
-        # The hard code "128" down there is the height of FCN Result
+        # The hard code "128" down there is the Nc of FCN Result
         
         #self.embeds = nn.Embedding(cfg.NUM_OF_TOKEN, self.embed_dimension) 
         self.embeds_temp = nn.Linear(cfg.NUM_OF_TOKEN, self.embed_dimension) 
@@ -117,7 +113,7 @@ class AGRU(nn.Module):
 
         self.Va_fully_connected = nn.Linear(self.va_len, 1)
         
-        self.conv_Q_beta = nn.Conv2d(1, self.Q_height, 3, stride=1, padding=1) 
+        self.conv_Q_beta = nn.Conv2d(1, self.Q_height, 3, stride=1, padding=1, bias=False) 
         
         
         self.alpha_softmax = torch.nn.Softmax(dim=1)
@@ -131,45 +127,46 @@ class AGRU(nn.Module):
         self.GT = GT
 
         
-    def forward(self, x, target): 
+    def forward(self, x, target):         
+        x_np = np.transpose(x.data.cpu().numpy()[0,:,:,:], (1,2,0))
         # Check if the model is running on a CUDA device
         use_cuda = next(self.parameters())[1].is_cuda        
 
         # Compute a forward pass on convolutional layers        
-        x = F.relu(self.conv1_1(x))
-        x = F.relu(self.conv1_2(x))
-        x = F.relu(self.conv1_3(x))
-        x = F.relu(self.conv1_4(x))
+        x = self.leaky_relu(self.conv1_1(x))
+        x = self.leaky_relu(self.conv1_2(x))
+        x = self.leaky_relu(self.conv1_3(x))
+        x = self.leaky_relu(self.conv1_4(x))
         
         x = self.pool_1(x)
         
-        x = F.relu(self.conv2_1(x))
-        x = F.relu(self.conv2_2(x))
-        x = F.relu(self.conv2_3(x))
-        x = F.relu(self.conv2_4(x))
+        x = self.leaky_relu(self.conv2_1(x))
+        x = self.leaky_relu(self.conv2_2(x))
+        x = self.leaky_relu(self.conv2_3(x))
+        x = self.leaky_relu(self.conv2_4(x))
         
         x = self.pool_2(x)
-        
-        x = F.relu(self.conv3_1(x))
-        x = F.relu(self.conv3_2(x))
-        x = F.relu(self.conv3_3(x))
-        x = F.relu(self.conv3_4(x))
+         
+        x = self.leaky_relu(self.conv3_1(x))
+        x = self.leaky_relu(self.conv3_2(x))
+        x = self.leaky_relu(self.conv3_3(x))
+        x = self.leaky_relu(self.conv3_4(x))
         
         x = self.pool_3(x)
-        
-        x = F.relu(self.conv4_1(x))
+          
+        x = self.leaky_relu(self.conv4_1(x))
         #x = self.conv4_1_drop(x)
-        x = F.relu(self.conv4_2(x))
+        x = self.leaky_relu(self.conv4_2(x))
         #x = self.conv4_2_drop(x)
-        x = F.relu(self.conv4_3(x))
+        x = self.leaky_relu(self.conv4_3(x))
         #x = self.conv4_3_drop(x)
-        x = F.relu(self.conv4_4(x))
+        x = self.leaky_relu(self.conv4_4(x))
         #x = self.conv4_4_drop(x)
         
-        FCN_Result = self.pool_4(x)
-
-        # Shape of FCU result: normally: (batchsize, 128, 16, 32)
-        fcn_output_shape = FCN_Result.cpu().data.numpy().shape
+        fcn_result = self.pool_4(x)
+ 
+        # Shape of FCN output using default settings: (batchsize, 128, 16, 32)
+        fcn_output_shape = fcn_result.cpu().data.numpy().shape
         batch_size = fcn_output_shape[0]
         fcn_height = fcn_output_shape[2]
         fcn_width = fcn_output_shape[3]
@@ -180,11 +177,9 @@ class AGRU(nn.Module):
         start_vector = np.zeros((batch_size,1,cfg.NUM_OF_TOKEN))
         start_vector[:,0,self.word_to_id['<s>']] = 1
         if use_cuda:
-            #GRU_hidden = Variable(torch.FloatTensor(batch_size, 128))
             GRU_hidden = Variable(torch.FloatTensor(batch_size, self.gru_hidden_size).cuda().zero_())
-            # Init return tensor (the prediction of mathematical Expression)
             return_tensor = Variable(torch.FloatTensor(start_vector).cuda(), requires_grad=True)
-            #Init Alpha and Beta Matrix
+            #Init alpha and beta Matrix
             alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
             beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().zero_(), requires_grad=True)
             self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, fcn_height,fcn_width).cuda())
@@ -197,7 +192,8 @@ class AGRU(nn.Module):
             alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).fill_(1.0 / float(num_of_block)), requires_grad=True)
             beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).zero_(), requires_grad=True)
             self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, fcn_height,fcn_width))
-        FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
+        
+        FCN_Straight = fcn_result.permute(0,2,3,1).contiguous()
         FCN_Straight = FCN_Straight.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
 
         from_h = self.Coverage_MLP_From_H(GRU_hidden.view(batch_size, self.gru_hidden_size))
@@ -214,7 +210,6 @@ class AGRU(nn.Module):
         from_b = self.Coverage_MLP_From_Beta(F_Straight)
         from_b = from_b.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
                 
-            #from_a = from_a + from_b + from_h.repeat(1, fcn_height * fcn_width).view(batch_size, self.va_len, fcn_height, fcn_width)
         from_a = from_a + from_b + from_h
 
         alpha_mat = F.tanh(from_a)
@@ -230,13 +225,7 @@ class AGRU(nn.Module):
         ####################################################################
 
         ################### START GRU ########################
-
-        
-        # insert_index = 1
-        
-        # Init the first vector in return_tensor: It is the <s> token
-#        return_tensor.data[:, 0, self.word_to_id['<s>']] = 1
-
+ 
         # Get last predicted symbol: This will be used for GRU's input
         return_vector = torch.squeeze(return_tensor, dim = 1)
         #GRU_output = Variable(return_tensor.data[:, 0, :])
@@ -251,16 +240,16 @@ class AGRU(nn.Module):
         if (use_cuda):
             target = np.reshape(target.data.cpu(), (batch_size, cfg.MAX_TOKEN_LEN))
         else:
-            target = np.reshape(target.data, (batch_size, cfg.MAX_TOKEN_LEN))
+            target = np.reshape(target.data, (batch_size, cfg.MAX_TOKEN_LEN))        
 
         for RNN_iterate in range (cfg.MAX_TOKEN_LEN - 1):
 
             #print (alpha_mat.cpu().data.numpy().shape)
         
-            # Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
-            multiplied_mat = FCN_Result.clone()
+            # Clone of fcn_result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
+            multiplied_mat = fcn_result.clone()
 
-            # Element-wise multiply between alpha and FCN_Result
+            # Element-wise multiply between alpha and fcn_result
             #--------
             #for batch_index in range(batch_size):
             #    for i in range (fcn_output_shape[1]):
@@ -329,7 +318,6 @@ class AGRU(nn.Module):
             # Ct     = multiplied_mat
             embedded = self.embeds_temp(return_vector)
 
-
             zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
             zt = F.sigmoid(zt)
             
@@ -367,7 +355,6 @@ class AGRU(nn.Module):
             
             #ret_temp = multiplied_mat.view(1, 65536)
 
-            # pdb.set_trace()
             ##########################################################
             ######### COVERAGE #######################################
             ##########################################################
@@ -384,7 +371,7 @@ class AGRU(nn.Module):
             #from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
             # New Approach
-            FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
+            FCN_Straight = fcn_result.permute(0,2,3,1).contiguous()
             FCN_Straight = FCN_Straight.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
             from_a = self.Coverage_MLP_From_A(FCN_Straight)
             from_a = from_a.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
@@ -419,14 +406,14 @@ class AGRU(nn.Module):
             #            
             #            #t = torch.transpose(alpha_mat.view(3,4),0,1)
             #        # this is a_i vector
-            #            temp_tensor = Variable(torch.unsqueeze(FCN_Result.data[batch_index,:,i,j], dim = 0))
+            #            temp_tensor = Variable(torch.unsqueeze(fcn_result.data[batch_index,:,i,j], dim = 0))
             #            
-            #            # get input from FCN_Result
+            #            # get input from fcn_result
             #            from_a = self.Coverage_MLP_From_A(temp_tensor)
             #
             #            # Assign pixel by pixel to alpha matrix
             #            alpha_mat.data[batch_index][i][j] = from_h.data[batch_index][0] + from_a.data[0][0]
-            #            #pdb.set_trace()
+
             #
             #            print (alpha_mat.data.numpy().shape)
             
@@ -441,20 +428,15 @@ class AGRU(nn.Module):
 
             alpha_mat = alpha_mat.transpose(0,1).contiguous().view(batch_size, fcn_height, fcn_width)
             
-
-
             alpha_mat = self.alpha_softmax(alpha_mat.view(batch_size, 512)).view(batch_size, fcn_height, fcn_width)
-#            pdb.set_trace()
+
             self.print_alpha_mat.append(alpha_mat.cpu().data.numpy())
             self.alpha_mat = torch.cat([self.alpha_mat, torch.unsqueeze(alpha_mat, dim = 1)], 1)
             
         #return torch.unsqueeze(return_tensor, dim = 1)
         # Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
 
-        
         return return_tensor, self.alpha_mat
-
-
 
 
     def forwardTest(self, x, beam_size = 10):
@@ -465,40 +447,40 @@ class AGRU(nn.Module):
         ################ FCN BLOCK #########################################
         ####################################################################
 
-        x = F.relu(self.conv1_1_bn(self.conv1_1(x)))
-        x = F.relu(self.conv1_2_bn(self.conv1_2(x)))
-        x = F.relu(self.conv1_3_bn(self.conv1_3(x)))
-        x = F.relu(self.conv1_4_bn(self.conv1_4(x)))
+        x = self.leaky_relu(self.conv1_1_bn(self.conv1_1(x)))
+        x = self.leaky_relu(self.conv1_2_bn(self.conv1_2(x)))
+        x = self.leaky_relu(self.conv1_3_bn(self.conv1_3(x)))
+        x = self.leaky_relu(self.conv1_4_bn(self.conv1_4(x)))
         
         x = self.pool_1(x)
         
-        x = F.relu(self.conv2_1_bn(self.conv2_1(x)))
-        x = F.relu(self.conv2_2_bn(self.conv2_2(x)))
-        x = F.relu(self.conv2_3_bn(self.conv2_3(x)))
-        x = F.relu(self.conv2_4_bn(self.conv2_4(x)))
+        x = self.leaky_relu(self.conv2_1_bn(self.conv2_1(x)))
+        x = self.leaky_relu(self.conv2_2_bn(self.conv2_2(x)))
+        x = self.leaky_relu(self.conv2_3_bn(self.conv2_3(x)))
+        x = self.leaky_relu(self.conv2_4_bn(self.conv2_4(x)))
         
         x = self.pool_2(x)
         
-        x = F.relu(self.conv3_1_bn(self.conv3_1(x)))
-        x = F.relu(self.conv3_2_bn(self.conv3_2(x)))
-        x = F.relu(self.conv3_3_bn(self.conv3_3(x)))
-        x = F.relu(self.conv3_4_bn(self.conv3_4(x)))
+        x = self.leaky_relu(self.conv3_1_bn(self.conv3_1(x)))
+        x = self.leaky_relu(self.conv3_2_bn(self.conv3_2(x)))
+        x = self.leaky_relu(self.conv3_3_bn(self.conv3_3(x)))
+        x = self.leaky_relu(self.conv3_4_bn(self.conv3_4(x)))
         
         x = self.pool_3(x)
         
-        x = F.relu(self.conv4_1_bn(self.conv4_1(x)))
+        x = self.leaky_relu(self.conv4_1_bn(self.conv4_1(x)))
         x = self.conv4_1_drop(x)
-        x = F.relu(self.conv4_2_bn(self.conv4_2(x)))
+        x = self.leaky_relu(self.conv4_2_bn(self.conv4_2(x)))
         x = self.conv4_2_drop(x)
-        x = F.relu(self.conv4_3_bn(self.conv4_3(x)))
+        x = self.leaky_relu(self.conv4_3_bn(self.conv4_3(x)))
         x = self.conv4_3_drop(x)
-        x = F.relu(self.conv4_4_bn(self.conv4_4(x)))
+        x = self.leaky_relu(self.conv4_4_bn(self.conv4_4(x)))
         x = self.conv4_4_drop(x)
         
-        FCN_Result = self.pool_4(x)
+        fcn_result = self.pool_4(x)
         
         # Shape of FCU result: normally: (batchsize, 128, 16, 32)
-        fcn_output_shape = FCN_Result.cpu().data.numpy().shape
+        fcn_output_shape = fcn_result.cpu().data.numpy().shape
         num_of_block = fcn_height * fcn_width
         ################ DEFINITION ########################################
         
@@ -552,8 +534,8 @@ class AGRU(nn.Module):
 
             if is_predicting:
                 is_predicting = False
-                # Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
-                multiplied_mat = FCN_Result.clone()
+                # Clone of fcn_result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
+                multiplied_mat = fcn_result.clone()
 
                 expanded_alpha_mat = alpha_mat.view(batch_size, 1, fcn_height, fcn_width)
                 expanded_alpha_mat = expanded_alpha_mat.repeat(1, fcn_output_shape[1], 1, 1)
@@ -664,7 +646,7 @@ class AGRU(nn.Module):
                 #from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
 
                 # New Approach
-                FCN_Straight = FCN_Result.permute(0,2,3,1).contiguous()
+                FCN_Straight = fcn_result.permute(0,2,3,1).contiguous()
                 FCN_Straight = FCN_Straight.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
                 from_a = self.Coverage_MLP_From_A(FCN_Straight)
                 from_a = from_a.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
@@ -706,8 +688,8 @@ class AGRU(nn.Module):
             else:
                 is_predicting = True
 
-                # Clone of FCN_Result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
-                multiplied_mat = FCN_Result.clone()
+                # Clone of fcn_result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
+                multiplied_mat = fcn_result.clone()
 
                 
                 expanded_alpha_mat = alpha_mat.view(batch_size, 1, fcn_height, fcn_width)
