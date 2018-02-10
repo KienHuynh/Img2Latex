@@ -238,7 +238,10 @@ class AGRU(nn.Module):
         
         # Reshape target vector so that it has the shape (batch_size, MAX_TOKEN_LEN)
         if (use_cuda):
-            target = np.reshape(target.data.cpu(), (batch_size, cfg.MAX_TOKEN_LEN))
+            try:
+                target = np.reshape(target.data.cpu(), (batch_size, cfg.MAX_TOKEN_LEN))
+            except ValueError as e:
+                pdb.set_trace()
         else:
             target = np.reshape(target.data, (batch_size, cfg.MAX_TOKEN_LEN))        
 
