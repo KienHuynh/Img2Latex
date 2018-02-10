@@ -221,11 +221,10 @@ def read_latex_label(path_to_ink, path_to_symbol, max_len):
     ignore_elements = ['traceFormat','annotation','trace','traceGroup']
     symbol_list = ['<s>']
     parse_latex_tree(root, symbol_list, ignore_elements)
-    
     need_to_pad = max_len - len(symbol_list)
     
     if (len(symbol_list) > max_len):
-        symbol_list = symbol_list[0:(max_len-1)]
+        symbol_list = symbol_list[0:(max_len)]
     
     symbol_list.append('</s>')
 
@@ -233,4 +232,6 @@ def read_latex_label(path_to_ink, path_to_symbol, max_len):
         symbol_list.append('$P')
 
     vector = symbol2id(symbol_list, word_to_id)
+    if (len(vector) < max_len):
+        pdb.set_trace()
     return vector

@@ -132,7 +132,7 @@ def train():
             print('Current learning rate: %.8f' % lr)
             self.optimizer.param_groups[0]['lr'] = lr
             self.optimizer.param_groups[1]['lr'] = lr
- 
+
         for i in range(num_ite):
             optimizer.zero_grad()
 

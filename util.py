@@ -47,7 +47,7 @@ def batch_target(file_list):
     batch = []
     for f in file_list:
         batch += get_gt.read_latex_label(f, 'mathsymbolclass.txt', cfg.MAX_TOKEN_LEN-1)
-
+     
     return np.asarray(batch)
 
 
