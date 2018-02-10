@@ -232,6 +232,6 @@ def read_latex_label(path_to_ink, path_to_symbol, max_len):
         symbol_list.append('$P')
 
     vector = symbol2id(symbol_list, word_to_id)
-    if (len(vector) < max_len):
+    if (len(vector) <= max_len):
         pdb.set_trace()
     return vector

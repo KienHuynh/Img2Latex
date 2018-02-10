@@ -1,6 +1,6 @@
 # Network settings
 MAX_TOKEN_LEN = 90
-NUM_OF_TOKEN = 114
+NUM_OF_TOKEN = 115
 IMH = 256
 IMW = 512
 
