@@ -182,7 +182,7 @@ class AGRU(nn.Module):
             #Init alpha and beta Matrix
             alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
             beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().zero_(), requires_grad=True)
-            self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, fcn_height,fcn_width).cuda())
+            self.alpha_mat = Variable(torch.zeros(batch_size, 1, fcn_height,fcn_width).cuda())
         else:
             #GRU_hidden = Variable(torch.FloatTensor(batch_size, 128))
             GRU_hidden = Variable(torch.FloatTensor(batch_size, self.gru_hidden_size).zero_())
@@ -191,7 +191,7 @@ class AGRU(nn.Module):
             #Init Alpha and Beta Matrix
             alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).fill_(1.0 / float(num_of_block)), requires_grad=True)
             beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).zero_(), requires_grad=True)
-            self.alpha_mat = Variable(torch.zeros(cfg.BATCH_SIZE, 1, fcn_height,fcn_width))
+            self.alpha_mat = Variable(torch.zeros(batch_size, 1, fcn_height,fcn_width))
         
         FCN_Straight = fcn_result.permute(0,2,3,1).contiguous()
         FCN_Straight = FCN_Straight.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
