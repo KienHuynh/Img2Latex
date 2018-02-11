@@ -119,14 +119,14 @@ def train():
     #inkml_list = inkml_list[0:120]
     #scale_list = scale_list[0:120]
     num_train = len(inkml_list)
+    num_ite = int(np.ceil(1.0*num_train/batch_size))
 
     # Main train loop
     for e in range(last_e, num_e):
         permu_ind = np.random.permutation(range(num_train))
         inkml_list = inkml_list[permu_ind]
         scale_list = scale_list[permu_ind]
-        num_ite = int(np.ceil(1.0*num_train/batch_size))
-       
+               
         if (global_step % cfg.NUM_EPOCH_TO_DECAY == cfg.NUM_EPOCH_TO_DECAY-1):
             lr = lr*lr_decay
             print('Current learning rate: %.8f' % lr)
@@ -139,7 +139,7 @@ def train():
             batch_idx = range(i*batch_size, (i+1)*batch_size)
             if (batch_idx[-1] >= num_train):
                 batch_idx = range(i*batch_size, num_train)
-             
+            batch_size = len(batch_idx) 
             batch_x = util.batch_data(inkml_list[batch_idx], scale_list[batch_idx], True)
             batch_x = util.np_to_var(batch_x, use_cuda)
             batch_y_np = util.batch_target(inkml_list[batch_idx])
@@ -197,6 +197,7 @@ def train():
                     tmp_x = scipy.misc.imresize(tmp_x, tmp.shape)
                     tmp *= tmp_x
                     scipy.misc.imsave(vis_path + ('attend_%04d.jpg' % idx), tmp)
+                plt.clf()
                 plt.plot(all_loss)
                 plt.show()
                 plt.savefig(vis_path + 'loss.png')
