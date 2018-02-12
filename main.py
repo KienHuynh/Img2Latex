@@ -127,11 +127,11 @@ def train():
         inkml_list = inkml_list[permu_ind]
         scale_list = scale_list[permu_ind]
                
-        if (global_step % cfg.NUM_EPOCH_TO_DECAY == cfg.NUM_EPOCH_TO_DECAY-1):
+        if (e % cfg.NUM_EPOCH_TO_DECAY == cfg.NUM_EPOCH_TO_DECAY-1):
             lr = lr*lr_decay
             print('Current learning rate: %.8f' % lr)
-            self.optimizer.param_groups[0]['lr'] = lr
-            self.optimizer.param_groups[1]['lr'] = lr
+            optimizer.param_groups[0]['lr'] = lr
+            optimizer.param_groups[1]['lr'] = lr
 
         for i in range(num_ite):
             optimizer.zero_grad()
