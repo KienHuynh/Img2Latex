@@ -139,3 +139,32 @@ def save_list(list_obj, file_name):
     for obj in list_obj:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
     f.close() 
+
+
+def levenshtein_distance(s, t):
+    """levenshtein_distance
+    Computer levenshtein distance between two strings (or list of symbols)
+
+    :param s: first string
+    :param t: second string
+    """
+
+    m = len(s)
+    n = len(t)
+    d = np.zeros((m + 1, n + 1))
+
+    for i in range(m + 1):
+        d[i, 0] = i
+
+    for j in range(n + 1):
+        d[0, j] = j
+
+    for j in range(1, n + 1):
+        for i in range(1, m + 1):
+            if s[i - 1] == t[j - 1]:
+                substitutionCost = 0
+            else:
+                substitutionCost = 1
+            d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
+
+    return d[m, n] / max(m , n)
