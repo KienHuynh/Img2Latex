@@ -141,6 +141,25 @@ def save_list(list_obj, file_name):
     f.close() 
 
 
+def exact_match(s, t):
+    """exact_match
+    Compare two strings or lists if they are the same
+
+    :param s: first string
+    :param t: second string
+    """
+    end_token_id = t.index('</s>')
+    t = t[0:end_token_id]
+    if (s[end_token_id] != '</s>'):
+        return 0
+    s = s[0:end_token_id] 
+    for i, ele in enumerate(s):
+        if ele != t[i]:
+            return 0
+
+    return 1
+
+
 def levenshtein_distance(s, t):
     """levenshtein_distance
     Computer levenshtein distance between two strings (or list of symbols)
