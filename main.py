@@ -351,5 +351,5 @@ if __name__ == '__main__':
     np.random.seed(1311)
     torch.manual_seed(1311)
 
-    #train()
-    test()
+    train()
+    #test()
