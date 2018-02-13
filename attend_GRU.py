@@ -99,9 +99,9 @@ class AGRU(nn.Module):
         self.FC_Wc = nn.Linear(128, self.embed_dimension) #
         
         # GRU layers
-        self.Coverage_MLP_From_H = nn.Linear(self.gru_hidden_size, self.va_len)
-        self.Coverage_MLP_From_A = nn.Linear(128, self.va_len)
-        self.Coverage_MLP_From_Beta = nn.Linear(self.Q_height, self.va_len)
+        self.coverage_mlp_h = nn.Linear(self.gru_hidden_size, self.va_len)
+        self.coverage_mlp_a = nn.Linear(128, self.va_len)
+        self.coverage_mlp_beta = nn.Linear(self.Q_height, self.va_len)
 
         self.Va_fully_connected = nn.Linear(self.va_len, 1)
         self.conv_Q_beta = nn.Conv2d(1, self.Q_height, 3, stride=1, padding=1, bias=False) 
@@ -195,19 +195,22 @@ class AGRU(nn.Module):
         fcn_flat = fcn_result.permute(0,2,3,1).contiguous()
         fcn_flat = fcn_flat.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
 
-        from_h = self.Coverage_MLP_From_H(GRU_hidden.view(batch_size, self.gru_hidden_size))
+        from_h = self.coverage_mlp_h(GRU_hidden.view(batch_size, self.gru_hidden_size))
         from_h = from_h.view(batch_size, self.va_len, 1, 1)
         from_h = from_h.repeat(1, 1, fcn_height, fcn_width)
 
-        from_a = self.Coverage_MLP_From_A(fcn_flat)
-        from_a = from_a.contiguous().view(beam_size, fcn_height, fcn_width, self.va_len)
-        
+        from_a = self.coverage_mlp_a(fcn_flat)
+        from_a = from_a.contiguous().view(batch_size, fcn_height, fcn_width, self.va_len)
+        from_a = from_a.permute(0,3,1,2) .contiguous()       
+
         F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
         f_flat = F_.transpose(1,3).contiguous()
         f_flat = F_.permute(0,2,3,1).contiguous()
         f_flat = f_flat.view(batch_size * fcn_height * fcn_width, self.Q_height)
-        from_b = self.Coverage_MLP_From_Beta(f_flat)
-        from_b = from_b.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
+
+        from_b = self.coverage_mlp_beta(f_flat)
+        from_b = from_b.contiguous().view(batch_size, fcn_height, fcn_width, self.va_len)
+        from_b = from_b.permute(0,3,1,2).contiguous()
                 
         from_a = from_a + from_b + from_h
 
@@ -319,23 +322,25 @@ class AGRU(nn.Module):
 
 
             # Get Input from h(t - 1)    
-            from_h = self.Coverage_MLP_From_H(GRU_hidden.view(batch_size, self.gru_hidden_size))
+            from_h = self.coverage_mlp_h(GRU_hidden.view(batch_size, self.gru_hidden_size))
             from_h = from_h.view(batch_size, self.va_len, 1, 1)
             from_h = from_h.repeat(1, 1, fcn_height, fcn_width)
-            #from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
+            #from_h = self.coverage_mlp_h(torch.squeeze(GRU_hidden, dim = 1))
 
             # New Approach
             fcn_flat = fcn_result.permute(0,2,3,1).contiguous()
             fcn_flat = fcn_flat.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
-            from_a = self.Coverage_MLP_From_A(fcn_flat)
-            from_a = from_a.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
+            from_a = self.coverage_mlp_a(fcn_flat)
+            from_a = from_a.contiguous().view(batch_size, fcn_height, fcn_width, self.va_len)
+            from_a = from_a.permute(0,3,1,2) .contiguous()       
             # --
             F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
             #f_flat = F_.transpose(1,3).contiguous()
             f_flat = F_.permute(0,2,3,1).contiguous()
             f_flat = f_flat.view(batch_size * fcn_height * fcn_width, self.Q_height)
-            from_b = self.Coverage_MLP_From_Beta(f_flat)
-            from_b = from_b.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
+            from_b = self.coverage_mlp_beta(f_flat)
+            from_b = from_b.contiguous().view(batch_size, fcn_height, fcn_width, self.va_len)
+            from_b = from_b.permute(0,3,1,2).contiguous()
             
             #---------------
             #from_a = from_a - (
@@ -420,25 +425,29 @@ class AGRU(nn.Module):
         fcn_flat = fcn_result.permute(0,2,3,1).contiguous()
         fcn_flat = fcn_flat.view(beam_size * fcn_height * fcn_width, fcn_output_shape[1])
 
-        from_h = self.Coverage_MLP_From_H(GRU_hidden.view(beam_size, self.gru_hidden_size))
+        from_h = self.coverage_mlp_h(GRU_hidden.view(beam_size, self.gru_hidden_size))
         from_h = from_h.view(beam_size, self.va_len, 1, 1)
         from_h = from_h.repeat(1, 1, fcn_height, fcn_width)
 
-        from_a = self.Coverage_MLP_From_A(fcn_flat)
+        from_a = self.coverage_mlp_a(fcn_flat)
         from_a = from_a.contiguous().view(beam_size, fcn_height, fcn_width, self.va_len)
-        
+        from_a = from_a.permute(0,3,1,2) .contiguous()       
+
         F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
         f_flat = F_.transpose(1,3).contiguous()
         f_flat = F_.permute(0,2,3,1).contiguous()
         f_flat = f_flat.view(beam_size * fcn_height * fcn_width, self.Q_height)
-        from_b = self.Coverage_MLP_From_Beta(f_flat)
-        from_b = from_b.transpose(0,1).contiguous().view(beam_size, self.va_len, fcn_height, fcn_width)
-                
+
+        from_b = self.coverage_mlp_beta(f_flat)
+        from_b = from_b.contiguous().view(beam_size, fcn_height, fcn_width, self.va_len)
+        from_b = from_b.permute(0,3,1,2).contiguous()
+
         from_a = from_a + from_b + from_h
+
         alpha_mat = F.tanh(from_a)
         alpha_straight = alpha_mat.view(beam_size * fcn_height * fcn_width, self.va_len)
         alpha_mat = self.Va_fully_connected(alpha_straight)
-        
+
         alpha_mat = alpha_mat.transpose(0,1).contiguous().view(beam_size, fcn_height, fcn_width) 
         alpha_mat = self.alpha_softmax(alpha_mat.view(beam_size, 512)).view(beam_size, fcn_height, fcn_width)
         all_alpha_mat = torch.cat([all_alpha_mat, torch.unsqueeze(alpha_mat, dim = 1)], 1)
@@ -459,7 +468,6 @@ class AGRU(nn.Module):
         for RNN_iterate in range (cfg.MAX_TOKEN_LEN - 1):       
             # Clone of fcn_result: We will use this for generating Ct Vector || Deprecated - We use another approach now!
             multiplied_mat = fcn_result.clone()
-            pdb.set_trace() 
             expanded_alpha_mat = alpha_mat.view(beam_size, 1, fcn_height, fcn_width)
             expanded_alpha_mat = expanded_alpha_mat.repeat(1, fcn_output_shape[1], 1, 1)
             multiplied_mat = multiplied_mat * expanded_alpha_mat
@@ -566,23 +574,25 @@ class AGRU(nn.Module):
 
 
             # Get Input from h(t - 1)    
-            from_h = self.Coverage_MLP_From_H(GRU_hidden.view(beam_size, self.gru_hidden_size))
+            from_h = self.coverage_mlp_h(GRU_hidden.view(beam_size, self.gru_hidden_size))
             from_h = from_h.view(beam_size, self.va_len, 1, 1)
             from_h = from_h.repeat(1, 1, fcn_height, fcn_width)
-            #from_h = self.Coverage_MLP_From_H(torch.squeeze(GRU_hidden, dim = 1))
+            #from_h = self.coverage_mlp_h(torch.squeeze(GRU_hidden, dim = 1))
 
             # New Approach
             fcn_flat = fcn_result.permute(0,2,3,1).contiguous()
             fcn_flat = fcn_flat.view(beam_size * fcn_height * fcn_width, fcn_output_shape[1])
-            from_a = self.Coverage_MLP_From_A(fcn_flat)
-            from_a = from_a.transpose(0,1).contiguous().view(beam_size, self.va_len, fcn_height, fcn_width)
+            from_a = self.coverage_mlp_a(fcn_flat)
+            from_a = from_a.contiguous().view(beam_size, fcn_height, fcn_width, self.va_len)
+            from_a = from_a.permute(0,3,1,2) .contiguous()       
             # --
             F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
             #f_flat = F_.transpose(1,3).contiguous()
             f_flat = F_.permute(0,2,3,1).contiguous()
             f_flat = f_flat.view(beam_size * fcn_height * fcn_width, self.Q_height)
-            from_b = self.Coverage_MLP_From_Beta(f_flat)
-            from_b = from_b.transpose(0,1).contiguous().view(beam_size, self.va_len, fcn_height, fcn_width)
+            from_b = self.coverage_mlp_beta(f_flat)
+            from_b = from_b.contiguous().view(beam_size, fcn_height, fcn_width, self.va_len)
+            from_b = from_b.permute(0,3,1,2).contiguous()
             
             #---------------
             #from_a = from_a - (
@@ -825,19 +835,19 @@ class AGRU(nn.Module):
 
 
                 # Get Input from h(t - 1)
-                from_h = self.Coverage_MLP_From_H(GRU_hidden.view(batch_size, self.gru_hidden_size))
+                from_h = self.coverage_mlp_h(GRU_hidden.view(batch_size, self.gru_hidden_size))
 
                 # New Approach
                 fcn_flat = fcn_result.permute(0,2,3,1).contiguous()
                 fcn_flat = fcn_flat.view(batch_size * fcn_height * fcn_width, fcn_output_shape[1])
-                from_a = self.Coverage_MLP_From_A(fcn_flat)
+                from_a = self.coverage_mlp_a(fcn_flat)
                 from_a = from_a.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
                 # --
                 F_ = self.conv_Q_beta(torch.unsqueeze(beta_mat, dim = 1)) #(13)
                 #f_flat = F_.transpose(1,3).contiguous()
                 f_flat = F_.permute(0,2,3,1).contiguous()
                 f_flat = f_flat.view(batch_size * fcn_height * fcn_width, self.Q_height)
-                from_b = self.Coverage_MLP_From_Beta(f_flat)
+                from_b = self.coverage_mlp_beta(f_flat)
                 from_b = from_b.transpose(0,1).contiguous().view(batch_size, self.va_len, fcn_height, fcn_width)
                 
                 #---------------
