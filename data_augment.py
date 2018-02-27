@@ -154,7 +154,7 @@ def random_rotate(img, angle_std):
     return img
 
 
-def random_transform(img, original=0.2, invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=15):
+def random_transform(img, original=0.2, invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=5):
     """random_transform
     Randomly use the random transformation defined above on img.
 
