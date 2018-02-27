@@ -70,7 +70,7 @@ def train():
         net.load_state_dict(loadobj['state_dict']) 
         last_e, running_loss, all_loss, lr = util.load_list(sorted(meta_files)[-1])
         print('Loading done.')
-
+    lr = 0.0001
     if (use_cuda):
         net.cuda()
 
@@ -189,20 +189,25 @@ def train():
                 print('Target: %s\n' % ' '.join(target_list))
                              
             if (global_step % num_ite_to_vis == (num_ite_to_vis-1)):
-                # Save attention to files for visualization
-                tmp_x = np.sum(batch_x.data.cpu().numpy()[0,:,:,:], axis=0)
-                attention = attention.data.cpu().numpy()[0,1:,:,:]
+                tmp_x = util.var_to_np(batch_x, use_cuda)[0,:,:,:]
+                tmp_x = np.transpose(tmp_x, (1,2,0))
+                attention_np = attention.data.cpu().numpy()[0,2:,:,:] 
 
-                for idx in range(10):
-                    tmp = attention[idx,:,:]
-                    tmp = scipy.misc.imresize(tmp, 10.0)
-                    tmp_x = scipy.misc.imresize(tmp_x, tmp.shape)
-                    tmp *= tmp_x
-                    scipy.misc.imsave(vis_path + ('attend_%04d.jpg' % idx), tmp)
+                for k in range(10):
+                    attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
+                    attention_k = (scipy.misc.imresize(attention_k, 16.0, interp='bicubic'))/255.0
+                    tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
+                    attention_k = np.repeat(np.expand_dims(attention_k, 2), 3, 2)
+                    attention_k *= tmp_x
+                    #attention_k[attention_k>1] = 1
+                    attention_k = (attention_k).astype(np.uint8)
+                    scipy.misc.imsave(vis_path + ('%02d.jpg' % k), attention_k)
+
                 plt.clf()
                 plt.plot(all_loss)
                 plt.show()
                 plt.savefig(vis_path + 'loss.png')
+
 
         if (e % num_epoch_to_save == (num_epoch_to_save-1)):
             print('Saving at epoch %d/%d' % (e, num_e))
@@ -228,22 +233,24 @@ def test():
     num_ite_to_log = cfg.NUM_ITE_TO_LOG
     num_ite_to_vis = cfg.NUM_ITE_TO_VIS
     save_name = cfg.SAVE_NAME
-    meta_name = cfg.META_NAME    
+    test_name = cfg.TEST_NAME 
     vis_path = cfg.VIS_PATH    
 
     use_cuda = cfg.CUDA and torch.cuda.is_available()
     save_path = cfg.MODEL_FOLDER
-    dataset_path = cfg.DATASET_PATH + 'CROHME2013_data/TrainINKML/expressmatch/'
+    dataset_path = cfg.DATASET_PATH + 'CROHME2013_data/TestINKML/'
     scale_factor = cfg.TEST_SCALE_FACTOR
     
     # Load the vocab dictionary for display purpose
-    _, id_to_word = get_gt.build_vocab('mathsymbolclass.txt')
+    word_to_id, id_to_word = get_gt.build_vocab('mathsymbolclass.txt')
+    start_id = word_to_id['<s>']
+    stop_id = word_to_id['</s>']
 
     # Initialize the network and load its weights
     net =  AGRU()
     save_files = glob.glob(save_path + save_name + '*.dat')
     if (len(save_files) > 0):
-        save_file = sorted(save_files)[-1]
+        save_file = sorted(save_files)[-10]
         print('Loading network weights saved at %s...' % save_file)
         loadobj = torch.load(save_file)
         net.load_state_dict(loadobj['state_dict']) 
@@ -284,55 +291,55 @@ def test():
         batch_y = util.np_to_var(batch_y_np, use_cuda)
         
         #pred_y, attention = net(batch_x, batch_y)
-        pred_y, attention = net.beam_search(batch_x)
+        pred_y, attention = net.beam_search(batch_x, start_id, stop_id)
         pred_y = util.var_to_np(pred_y, use_cuda)
         pred_y = np.argmax(pred_y, 2)
         batch_y = np.reshape(batch_y_np, (batch_size, max_len))
         
         print('Finished ite %d/%d.' % (i, num_ite)) 
-        for j in range(pred_y.shape[0]):
-            pred_string = pred_y[j,:]
-            pred_string = [id_to_word[idx] for idx in list(pred_string)]
-            gt_string = batch_y[j,:]
-            gt_string = [id_to_word[idx] for idx in list(gt_string)]
-            all_pred.append(pred_string)
-            all_gt.append(gt_string)
-            em.append(util.exact_match(pred_string, gt_string))
-            if ('</s>' in pred_string):
-                pred_string = pred_string[0:pred_string.index('</s>')+1]
-            gt_string = gt_string[0:gt_string.index('</s>')+1]
-            wer.append(util.levenshtein_distance(pred_string, gt_string))
+        j = 0
+
+        pred_string = pred_y[j,:]
+        pred_string = [id_to_word[idx] for idx in list(pred_string)]
+        gt_string = batch_y[0,:]
+        gt_string = [id_to_word[idx] for idx in list(gt_string)]
+        all_pred.append(pred_string)
+        all_gt.append(gt_string)
+        em.append(util.exact_match(pred_string, gt_string))
+        if ('</s>' in pred_string):
+            pred_string = pred_string[0:pred_string.index('</s>')+1]
+        gt_string = gt_string[0:gt_string.index('</s>')+1]
+        wer.append(util.levenshtein_distance(pred_string, gt_string))
+       
+        if (i % 4 == 0):
+            continue
+ 
+        # Printing stuffs to console      
+        print('Prediction: %s' % ' '.join(pred_string))
+        print('Target: %s\n' % ' '.join(gt_string))
+                          
+        # Save attention to files for visualization
+        file_name = ntpath.basename(inkml_list[batch_idx[j]])[:-6]
+        vis_path_j = vis_path + file_name + '/'
+        if (not os.path.exists(vis_path_j)):
+            os.makedirs(vis_path_j)
         
-            # Only print and visualize a fourth of them
-            if (j % 4 != 0):
-                continue
+        tmp_x = np.sum(batch_x.data.cpu().numpy()[j,:,:,:], axis=0)
+        attention_np = attention.data.cpu().numpy()[j,1:,:,:]
 
-            # Printing stuffs to console      
-            print('Prediction: %s' % ' '.join(pred_string))
-            print('Target: %s\n' % ' '.join(gt_string))
-                              
-            # Save attention to files for visualization
-            file_name = ntpath.basename(inkml_list[batch_idx[j]])[:-6]
-            vis_path_j = vis_path + file_name + '/'
-            if (not os.path.exists(vis_path_j)):
-                os.makedirs(vis_path_j)
-            
-            tmp_x = np.sum(batch_x.data.cpu().numpy()[j,:,:,:], axis=0)
-            attention_np = attention.data.cpu().numpy()[j,1:,:,:]
-
-            for k, word in enumerate(pred_string):
-                word = word.replace('/', 'slash_')
-                attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
-                attention_k = (scipy.misc.imresize(attention_k, 16.0))/255.0
-                tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
-                attention_k += tmp_x
-                attention_k[attention_k>1] = 1
-                try:
-                    scipy.misc.imsave(vis_path_j + ('%02d_%s.jpg' % (k, word)), attention_k)
-                except FileNotFoundError:
-                    pdb.set_trace()
-                if (word == '<slash_s>'):
-                    break
+        for k, word in enumerate(pred_string):
+            word = word.replace('/', 'slash_')
+            attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
+            attention_k = (scipy.misc.imresize(attention_k, 16.0))/255.0
+            tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
+            attention_k += tmp_x
+            attention_k[attention_k>1] = 1
+            try:
+                scipy.misc.imsave(vis_path_j + ('%02d_%s.jpg' % (k, word)), attention_k)
+            except FileNotFoundError:
+                pdb.set_trace()
+            if (word == '<slash_s>'):
+                break
 
         #pdb.set_trace()
 
@@ -351,5 +358,5 @@ if __name__ == '__main__':
     np.random.seed(1311)
     torch.manual_seed(1311)
 
-    train()
-    #test()
+    #train()
+    test()
