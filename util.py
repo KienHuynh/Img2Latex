@@ -143,15 +143,17 @@ def save_list(list_obj, file_name):
 
 def exact_match(s, t):
     """exact_match
-    Compare two strings or lists if they are the same
+    Compare two lists of predicted and target tokens if they are the same
 
-    :param s: first string
-    :param t: second string
+    :param s: predicted string
+    :param t: target string
     """
     end_token_id = t.index('</s>')
     t = t[0:end_token_id]
-    if (s[end_token_id] != '</s>'):
+    if (end_token_id >= len(s)):
         return 0
+    if (s[end_token_id] != '</s>'):
+        return 0 
     s = s[0:end_token_id] 
     for i, ele in enumerate(s):
         if ele != t[i]:
@@ -187,3 +189,12 @@ def levenshtein_distance(s, t):
             d[i, j] = min(d[i-1, j] + 1, d[i, j-1] + 1, d[i-1, j-1] + substitutionCost)
 
     return d[m, n] / max(m , n)
+
+
+def softmax(x, axis=1):
+    x = np.copy(x)
+    xmax = np.max(x, axis=axis, keepdims=True)
+    x -= xmax
+    xexp = np.exp(x)
+    x = xexp/np.sum(xexp,axis=axis,keepdims=True)
+    return x
