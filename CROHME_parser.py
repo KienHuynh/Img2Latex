@@ -21,7 +21,6 @@ import get_gt
 
 import pdb
 
-
 def parse_file(input_path, output_path = 'img.jpg', scale_factor = 1, target_width = 2000, target_height = 1000, vertexlen = 2):
     
     #################################
@@ -250,7 +249,7 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
 
     width = max_x - min_x
     heigh = max_y - min_y
-
+    
     evaluate_width = width * scale_factor
     evaluate_heigh = heigh * scale_factor
 
@@ -274,7 +273,9 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
             #expr_img[temp_vertex_arr[0][1], temp_vertex_arr[0][0]] = 255
         for i in range (len(stroke) - 1):
             cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], 255, 1)
-
+    
+    
+    
     #################################
     ##### PADDING ###################
     #################################
@@ -283,7 +284,7 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
     x_offset = int((target_width - expr_img.shape[1]) / 2)
     
     output[y_offset:y_offset + expr_img.shape[0], x_offset:x_offset + expr_img.shape[1]] = expr_img
- 
+
     return [output]
 
 
