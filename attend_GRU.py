@@ -632,11 +632,3 @@ class AGRU(nn.Module):
         # Returnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ! after a long long way :'(((((
 
         return return_tensor, all_alpha_mat
-
-
-    ############## UTILS ######################33
-    def createVector(self, v, batch, toklen):
-        z = np.zeros((batch, toklen))
-        for i in range(batch):
-            z[i, v[i]] = 1
-        return z
