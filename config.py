@@ -15,7 +15,7 @@ BATCH_SIZE = 1
 RAND_TRANSFORM = True
 
 # Test settings
-BEAM_SIZE = 12
+BEAM_SIZE = 1
 
 # Saving
 NUM_EPOCH_TO_SAVE = 5 # Save every SAVE_STEP epoch

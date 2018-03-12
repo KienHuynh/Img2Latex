@@ -263,12 +263,15 @@ def inkml2img(input_path, scale_factor = 1, target_width = 512, target_height = 
     expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
 
     for stroke in vertex_arr:
-
+        
         temp_vertex_arr = []
 
         for vertex in stroke:
             temp_vertex_arr.append((int((vertex[0] - min_x) * scale_factor ), int((vertex[1] - min_y) * scale_factor)))
-            
+    
+        if (len(temp_vertex_arr) == 1):
+            cv2.circle(expr_img, temp_vertex_arr[0], 1, 255, -1) 
+            #expr_img[temp_vertex_arr[0][1], temp_vertex_arr[0][0]] = 255
         for i in range (len(stroke) - 1):
             cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], 255, 1)
 
