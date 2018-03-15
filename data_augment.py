@@ -178,7 +178,7 @@ def elastic_transform(image, alpha, sigma, random_state=None):
     return map_coordinates(image, indices, order=1).reshape(shape)
 
 
-def random_transform(img, original=0.15, elastic=0.8, e_sigma=[0.06, 0.1], invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=5):
+def random_transform(img, original=0.15, elastic=0.8, e_sigma=[0.05, 0.1], invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=5):
     """random_transform
     Randomly use the random transformation defined above on img.
 
