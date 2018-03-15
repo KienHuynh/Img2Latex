@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-from attend_GRU import AGRU
+from attend_GRUv1 import AGRU
 import util
 
 import os
