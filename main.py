@@ -190,16 +190,17 @@ def train():
                              
             if (global_step % num_ite_to_vis == (num_ite_to_vis-1)):
                 tmp_x = util.var_to_np(batch_x, use_cuda)[0,:,:,:]
-                tmp_x = np.transpose(tmp_x, (1,2,0))
+                tmp_x = np.transpose(tmp_x, (1,2,0))[:,:,0:3]
                 attention_np = attention.data.cpu().numpy()[0,2:,:,:] 
-
                 for k in range(10):
                     attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
                     attention_k = (scipy.misc.imresize(attention_k, 16.0, interp='bicubic'))/255.0
                     tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
                     attention_k = np.repeat(np.expand_dims(attention_k, 2), 3, 2)
-                    attention_k *= tmp_x
-                    #attention_k[attention_k>1] = 1
+                    attention_k = attention_k*255
+                    attention_k += tmp_x
+                    attention_k /= 2.0
+                    attention_k[attention_k > 255] = 255
                     attention_k = (attention_k).astype(np.uint8)
                     scipy.misc.imsave(vis_path + ('%02d.jpg' % k), attention_k)
 
