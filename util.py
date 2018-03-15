@@ -21,15 +21,27 @@ def batch_data(file_list, scale_list, istrain):
     """
     imh = cfg.IMH
     imw = cfg.IMW
-    batch_size = len(file_list)
-    batch = np.zeros((imh,imw,3,batch_size), dtype=np.float32)
 
+    batch_size = len(file_list)
+    if (cfg.USE_COORD):
+        batch = np.zeros((imh,imw,5,batch_size), dtype=np.float32)
+        grid_x, grid_y = np.meshgrid(range(imw),range(imh))
+        grid_x = (grid_x/(imw - 1)).reshape((imh, imw, 1))
+        grid_y = (grid_y/(imh - 1)).reshape((imh, imw, 1))
+    else:
+        batch = np.zeros((imh,imw,3,batch_size), dtype=np.float32)
+    
     for i, f in enumerate(file_list):
         scale_factor = scale_list[i]
-        img = CROHME_parser.inkml2img(f, scale_factor, target_width=imw, target_height=imh)[0]
+        img = CROHME_parser.inkml2img(f, scale_factor, target_width=imw, target_height=imh)[0]            
         img = data_augment.gray2rgb(img)
+        
         if (istrain and cfg.RAND_TRANSFORM):
             img = data_augment.random_transform(img)
+
+        if (cfg.USE_COORD):
+            img = np.concatenate((img, grid_x, grid_y), 2)
+
         batch[:,:,:,i] = img
 
     # Currently, batch has HWCN format
