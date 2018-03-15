@@ -39,7 +39,7 @@ def train():
     num_e = cfg.NUM_EPOCH
 
     # Tracking/Saving
-    last_e = 0
+    last_e = -1
     global_step = 0
     running_loss = 0
     num_ite_to_log = cfg.NUM_ITE_TO_LOG
@@ -70,7 +70,7 @@ def train():
         net.load_state_dict(loadobj['state_dict']) 
         last_e, running_loss, all_loss, lr = util.load_list(sorted(meta_files)[-1])
         print('Loading done.')
-    lr = 0.0001
+
     if (use_cuda):
         net.cuda()
 
@@ -124,7 +124,7 @@ def train():
     num_ite = int(np.ceil(1.0*num_train/batch_size))
 
     # Main train loop
-    for e in range(last_e, num_e):
+    for e in range(last_e+1, num_e):
         permu_ind = np.random.permutation(range(num_train))
         inkml_list = inkml_list[permu_ind]
         scale_list = scale_list[permu_ind]
@@ -227,7 +227,7 @@ def test():
     
     # Training params
     is_train = False
-    batch_size = cfg.BATCH_SIZE
+    batch_size = 1
 
     # Tracking/Saving
     num_ite_to_log = cfg.NUM_ITE_TO_LOG
@@ -250,7 +250,7 @@ def test():
     net =  AGRU()
     save_files = glob.glob(save_path + save_name + '*.dat')
     if (len(save_files) > 0):
-        save_file = sorted(save_files)[-10]
+        save_file = sorted(save_files)[-1]
         print('Loading network weights saved at %s...' % save_file)
         loadobj = torch.load(save_file)
         net.load_state_dict(loadobj['state_dict']) 
@@ -326,7 +326,7 @@ def test():
         
         tmp_x = np.sum(batch_x.data.cpu().numpy()[j,:,:,:], axis=0)
         attention_np = attention.data.cpu().numpy()[j,1:,:,:]
-
+        pred_string = pred_string[1:]
         for k, word in enumerate(pred_string):
             word = word.replace('/', 'slash_')
             attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8

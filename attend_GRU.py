@@ -68,7 +68,8 @@ class AGRU(nn.Module):
         self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
         self.conv4_4_bn = nn.BatchNorm2d(128)
         self.conv4_4_drop = nn.Dropout2d(p = 0.025)
-         
+
+                 
         self.pool_4 = nn.MaxPool2d(2, stride=2)
 
         self.leaky_relu = nn.LeakyReLU(0.01)

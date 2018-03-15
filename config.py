@@ -7,8 +7,8 @@ IMW = 512
 # Training settings
 NUM_EPOCH = 500
 LR = 0.0001
-LR_DECAY = 1/1.3
-NUM_EPOCH_TO_DECAY = 60
+LR_DECAY = 1/1.5
+NUM_EPOCH_TO_DECAY = 15
 MOMENTUM = 0.9
 MAX_GRAD_CLIP = 0.1
 BATCH_SIZE = 16
@@ -19,13 +19,13 @@ BEAM_SIZE = 1
 
 # Saving
 NUM_EPOCH_TO_SAVE = 5 # Save every SAVE_STEP epoch
-SAVE_NAME = 'attend_gru_031218_weight' # MMDDYY
-META_NAME = 'attend_gru_031218_meta'
-TEST_NAME = 'attend_gru_031218_test'
+SAVE_NAME = 'attend_gru_031518_weight' # MMDDYY
+META_NAME = 'attend_gru_031518_meta'
+TEST_NAME = 'attend_gru_031518_test'
 
 # For traking/displaying
 NUM_ITE_TO_LOG = 10 # Display information (loss, current epoch, etc.) every PRINT_STEP iteration
-NUM_ITE_TO_VIS = 100
+NUM_ITE_TO_VIS = 50
 VIS_PATH = './../vis/Image2Latex/'
 
 CUDA = True
