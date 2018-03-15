@@ -24,7 +24,7 @@ class AGRU(nn.Module):
         self.va_len = 512
         
         super(AGRU, self).__init__()
-        self.conv1_1 = nn.Conv2d(3, 32, 3, stride=1, padding=1, bias=False)
+        self.conv1_1 = nn.Conv2d(5, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_1_bn = nn.BatchNorm2d(32)
         self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_2_bn = nn.BatchNorm2d(32)
@@ -45,30 +45,30 @@ class AGRU(nn.Module):
         self.conv2_4_bn = nn.BatchNorm2d(64)
         
         self.pool_2 = nn.MaxPool2d(2, stride=2)
-        self.conv3_1 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        self.conv3_1_bn = nn.BatchNorm2d(64)
-        self.conv3_2 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        self.conv3_2_bn = nn.BatchNorm2d(64)
-        self.conv3_3 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        self.conv3_3_bn = nn.BatchNorm2d(64)
-        self.conv3_4 = nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        self.conv3_4_bn = nn.BatchNorm2d(64)
+        self.conv3_1 = nn.Conv2d(64, 128, 3, stride=1, padding=1, bias=False)
+        self.conv3_1_bn = nn.BatchNorm2d(128)
+        self.conv3_2 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
+        self.conv3_2_bn = nn.BatchNorm2d(128)
+        self.conv3_3 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
+        self.conv3_3_bn = nn.BatchNorm2d(128)
+        self.conv3_4 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
+        self.conv3_4_bn = nn.BatchNorm2d(128)
         
         self.pool_3 = nn.MaxPool2d(2, stride=2)
         
-        self.conv4_1 = nn.Conv2d(64, 128, 3, stride=1, padding=1, bias=False)
-        self.conv4_1_bn = nn.BatchNorm2d(128)
+        self.conv4_1 = nn.Conv2d(128, 256, 3, stride=1, padding=1, bias=False)
+        self.conv4_1_bn = nn.BatchNorm2d(256)
         self.conv4_1_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_2 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
-        self.conv4_2_bn = nn.BatchNorm2d(128)
+        self.conv4_2 = nn.Conv2d(256, 256, 3, stride=1, padding=1, bias=False)
+        self.conv4_2_bn = nn.BatchNorm2d(256)
         self.conv4_2_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_3 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
-        self.conv4_3_bn = nn.BatchNorm2d(128)
+        self.conv4_3 = nn.Conv2d(256, 256, 3, stride=1, padding=1, bias=False)
+        self.conv4_3_bn = nn.BatchNorm2d(256)
         self.conv4_3_drop = nn.Dropout2d(p = 0.025)
-        self.conv4_4 = nn.Conv2d(128, 128, 3, stride=1, padding=1, bias=False)
-        self.conv4_4_bn = nn.BatchNorm2d(128)
+        self.conv4_4 = nn.Conv2d(256, 256, 3, stride=1, padding=1, bias=False)
+        self.conv4_4_bn = nn.BatchNorm2d(256)
         self.conv4_4_drop = nn.Dropout2d(p = 0.025)
-
+        self.last_conv_nc = list(self.conv4_4.parameters())[0].shape[0]
                  
         self.pool_4 = nn.MaxPool2d(2, stride=2)
 
@@ -85,23 +85,23 @@ class AGRU(nn.Module):
         self.embeds_temp = nn.Linear(cfg.NUM_OF_TOKEN, self.embed_dimension) 
         self.FC_Wyz = nn.Linear(self.embed_dimension, self.gru_hidden_size)
         self.FC_Uhz = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
-        self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+        #self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
         
         self.FC_Wyr = nn.Linear(self.embed_dimension, self.gru_hidden_size)
         self.FC_Uhr = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
-        self.FC_Ccr = nn.Linear(128, self.gru_hidden_size)
+        self.FC_Ccr = nn.Linear(self.last_conv_nc, self.gru_hidden_size)
         
         self.FC_Wyh = nn.Linear(self.embed_dimension, self.gru_hidden_size)
         self.FC_Urh = nn.Linear(self.gru_hidden_size, self.gru_hidden_size)
-        self.FC_Ccz = nn.Linear(128, self.gru_hidden_size)
+        self.FC_Ccz = nn.Linear(self.last_conv_nc, self.gru_hidden_size)
             
         self.FC_Wo = nn.Linear(self.embed_dimension, cfg.NUM_OF_TOKEN) #
         self.FC_Wh = nn.Linear(self.gru_hidden_size, self.embed_dimension) # for (11)
-        self.FC_Wc = nn.Linear(128, self.embed_dimension) #
+        self.FC_Wc = nn.Linear(self.last_conv_nc, self.embed_dimension) #
         
         # GRU layers
         self.coverage_mlp_h = nn.Linear(self.gru_hidden_size, self.va_len)
-        self.coverage_mlp_a = nn.Linear(128, self.va_len)
+        self.coverage_mlp_a = nn.Linear(self.last_conv_nc, self.va_len)
         self.coverage_mlp_beta = nn.Linear(self.Q_height, self.va_len)
 
         self.Va_fully_connected = nn.Linear(self.va_len, 1)
@@ -248,7 +248,7 @@ class AGRU(nn.Module):
             multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
             multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
             
-            multiplied_mat = multiplied_mat.view(batch_size, 128)
+            multiplied_mat = multiplied_mat.view(batch_size, self.last_conv_nc)
            
             ########################################################################################
             ################### GRU SECTION ########################################################
@@ -276,7 +276,6 @@ class AGRU(nn.Module):
             # h(t-1) = GRU_hidden
             # Ct     = multiplied_mat
             embedded = self.embeds_temp(return_vector)
-
             zt = self.FC_Wyz(embedded) + self.FC_Uhz(GRU_hidden) + self.FC_Ccz(multiplied_mat) # equation (4) in paper
             zt = F.sigmoid(zt)
             
