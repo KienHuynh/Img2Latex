@@ -146,7 +146,7 @@ def train():
             batch_x = util.np_to_var(batch_x, use_cuda)
             batch_y_np = util.batch_target(inkml_list[batch_idx])
             batch_y = util.np_to_var(batch_y_np, use_cuda)
-            
+ 
             pred_y, attention = net(batch_x, batch_y) 
                 
             # Convert the 3D tensor to 2D matrix of shape (batch_size*MAX_TOKEN_LEN, NUM_OF_TOKEN) to compute log loss

@@ -26,8 +26,8 @@ def batch_data(file_list, scale_list, istrain):
     if (cfg.USE_COORD):
         batch = np.zeros((imh,imw,5,batch_size), dtype=np.float32)
         grid_x, grid_y = np.meshgrid(range(imw),range(imh))
-        grid_x = (grid_x/(imw - 1)).reshape((imh, imw, 1))
-        grid_y = (grid_y/(imh - 1)).reshape((imh, imw, 1))
+        grid_x = 255*(grid_x/(imw - 1)).reshape((imh, imw, 1))
+        grid_y = 255*(grid_y/(imh - 1)).reshape((imh, imw, 1))
     else:
         batch = np.zeros((imh,imw,3,batch_size), dtype=np.float32)
     
