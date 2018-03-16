@@ -4,12 +4,12 @@ import data_augment
 import config as cfg
 
 import numpy as np
-import torch
-from torch.autograd import Variable
 
 import pickle
 
 import pdb
+import torch
+from torch.autograd import Variable
 
 def batch_data(file_list, scale_list, istrain):
     """batch_data

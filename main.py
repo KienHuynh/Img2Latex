@@ -1,14 +1,15 @@
+import torch,cv2
+import torch.nn as nn
+import torch.optim as optim
+from torch.autograd import Variable
+from attend_GRUv1 import AGRU
+
 import get_gt
 import CROHME_parser
 import data_augment
 import config as cfg
 
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
-from attend_GRUv1 import AGRU
 import util
 
 import os
