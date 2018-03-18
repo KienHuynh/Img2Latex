@@ -24,7 +24,7 @@ class AGRU(nn.Module):
         self.va_len = 512
         
         super(AGRU, self).__init__()
-        self.conv1_1 = nn.Conv2d(5, 32, 3, stride=1, padding=1, bias=False)
+        self.conv1_1 = nn.Conv2d(3, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_1_bn = nn.BatchNorm2d(32)
         self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_2_bn = nn.BatchNorm2d(32)
@@ -524,7 +524,7 @@ class AGRU(nn.Module):
             multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 2)
             multiplied_mat = torch.sum(multiplied_mat, keepdim=True, dim = 3)
             
-            multiplied_mat = multiplied_mat.view(beam_size, 128)
+            multiplied_mat = multiplied_mat.view(beam_size, 256)
 
             #######################
             # 

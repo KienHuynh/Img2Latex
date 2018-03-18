@@ -168,7 +168,7 @@ def train():
             
             running_loss += loss.data[0]
             all_loss.append(loss.data[0])
-            global_step += 1
+
             
             # Printing stuffs to console 
             if (global_step % num_ite_to_log == (num_ite_to_log-1)):
@@ -209,6 +209,8 @@ def train():
                 plt.plot(all_loss)
                 plt.show()
                 plt.savefig(vis_path + 'loss.png')
+
+            global_step += 1
 
 
         if (e % num_epoch_to_save == (num_epoch_to_save-1)):
@@ -361,4 +363,4 @@ if __name__ == '__main__':
     torch.manual_seed(1311)
 
     train()
-    #test()
+    test()
