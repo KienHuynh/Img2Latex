@@ -3,7 +3,7 @@ MAX_TOKEN_LEN = 90
 NUM_OF_TOKEN = 115
 IMH = 256
 IMW = 512
-USE_COORD = False
+USE_COORD = True
 
 # Training settings
 NUM_EPOCH = 500

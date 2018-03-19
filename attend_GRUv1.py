@@ -24,7 +24,7 @@ class AGRU(nn.Module):
         self.va_len = 512
         
         super(AGRU, self).__init__()
-        self.conv1_1 = nn.Conv2d(3, 32, 3, stride=1, padding=1, bias=False)
+        self.conv1_1 = nn.Conv2d(5, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_1_bn = nn.BatchNorm2d(32)
         self.conv1_2 = nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)
         self.conv1_2_bn = nn.BatchNorm2d(32)
