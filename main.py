@@ -32,7 +32,7 @@ def train():
     
     # Training params
     is_train = True
-    batch_size = cfg.BATCH_SIZE
+    batch_size_const = cfg.BATCH_SIZE
     lr = cfg.LR
     momentum = cfg.MOMENTUM
     lr_decay = cfg.LR_DECAY
@@ -122,7 +122,7 @@ def train():
     #inkml_list = inkml_list[0:120]
     #scale_list = scale_list[0:120]
     num_train = len(inkml_list)
-    num_ite = int(np.ceil(1.0*num_train/batch_size))
+    num_ite = int(np.ceil(1.0*num_train/batch_size_const))
 
     # Main train loop
     for e in range(last_e+1, num_e):
@@ -139,9 +139,9 @@ def train():
         for i in range(num_ite):
             optimizer.zero_grad()
 
-            batch_idx = range(i*batch_size, (i+1)*batch_size)
+            batch_idx = range(i*batch_size_const, (i+1)*batch_size_const)
             if (batch_idx[-1] >= num_train):
-                batch_idx = range(i*batch_size, num_train)
+                batch_idx = range(i*batch_size_const, num_train)
             batch_size = len(batch_idx) 
             batch_x = util.batch_data(inkml_list[batch_idx], scale_list[batch_idx], is_train)
             batch_x = util.np_to_var(batch_x, use_cuda)
