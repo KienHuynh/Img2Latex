@@ -129,8 +129,8 @@ def train():
     optimizer.zero_grad()
     for e in range(last_e+1, num_e):
         permu_ind = np.random.permutation(range(num_train))
-        inkml_list = inkml_list[permu_ind]
-        scale_list = scale_list[permu_ind]
+        inkml_list = inkml_list[permu_ind.astype(int)]
+        scale_list = scale_list[permu_ind.astype(int)]
                
         if (e % cfg.NUM_EPOCH_TO_DECAY == cfg.NUM_EPOCH_TO_DECAY-1):
             lr = lr*lr_decay
