@@ -32,7 +32,8 @@ def train():
     
     # Training params
     is_train = True
-    batch_size_const = cfg.BATCH_SIZE
+    batch_size_const = cfg.GPU_BATCH_SIZE
+    num_ite_to_update = cfg.NUM_ITE_TO_UPDATE
     lr = cfg.LR
     momentum = cfg.MOMENTUM
     lr_decay = cfg.LR_DECAY
@@ -125,6 +126,7 @@ def train():
     num_ite = int(np.ceil(1.0*num_train/batch_size_const))
 
     # Main train loop
+    optimizer.zero_grad()
     for e in range(last_e+1, num_e):
         permu_ind = np.random.permutation(range(num_train))
         inkml_list = inkml_list[permu_ind]
@@ -137,8 +139,7 @@ def train():
             optimizer.param_groups[1]['lr'] = lr
 
         for i in range(num_ite):
-            optimizer.zero_grad()
-
+  
             batch_idx = range(i*batch_size_const, (i+1)*batch_size_const)
             if (batch_idx[-1] >= num_train):
                 batch_idx = range(i*batch_size_const, num_train)
@@ -162,18 +163,20 @@ def train():
 
             loss = criterion(pred_y, batch_y)
             loss.backward()
-            
-            util.grad_clip(net, max_grad)
-            optimizer.step()
-            
             running_loss += loss.data[0]
-            all_loss.append(loss.data[0])
+
+            if (global_step % num_ite_to_update == (num_ite_to_update-1)):
+                util.grad_clip(net, max_grad)
+                optimizer.step()
+                optimizer.zero_grad()
+                running_loss /= num_ite_to_update
+                all_loss.append(running_loss)
+                running_loss = 0
 
             
             # Printing stuffs to console 
             if (global_step % num_ite_to_log == (num_ite_to_log-1)):
-                print('Finished ite %d/%d, epoch %d/%d, loss: %.5f' % (i, num_ite, e, num_e, running_loss/num_ite_to_log)) 
-                running_loss = 0 
+                print('Finished ite %d/%d, epoch %d/%d, loss: %.5f' % (i, num_ite, e, num_e, all_loss[-1])) 
                 
                 # Printing prediction and target
                 pred_y_np = util.var_to_np(pred_y, use_cuda)
@@ -359,8 +362,8 @@ def test():
 
 if __name__ == '__main__':
     # Set random seeds for reproducibility
-    np.random.seed(1311)
-    torch.manual_seed(1311)
+    np.random.seed(1991)
+    torch.manual_seed(1991)
 
     train()
     test()
