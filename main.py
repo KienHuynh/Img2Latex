@@ -145,7 +145,6 @@ def train():
                 batch_idx = range(i*batch_size_const, num_train)
             batch_size = len(batch_idx) 
             batch_x = util.batch_data(inkml_list[batch_idx], scale_list[batch_idx], is_train)
-            batch_x = util.np_to_var(batch_x, use_cuda)
             batch_y_np = util.batch_target(inkml_list[batch_idx])
             batch_y = util.np_to_var(batch_y_np, use_cuda)
  
@@ -293,7 +292,6 @@ def test():
             batch_idx = range(i*batch_size, num_test)
         batch_size = len(batch_idx) 
         batch_x = util.batch_data(inkml_list[batch_idx], scale_list[batch_idx], is_train)
-        batch_x = util.np_to_var(batch_x, use_cuda)
         batch_y_np = util.batch_target(inkml_list[batch_idx])
         batch_y = util.np_to_var(batch_y_np, use_cuda)
         

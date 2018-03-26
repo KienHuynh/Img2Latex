@@ -5,12 +5,14 @@ This module contains some necessary random augmentation methods which can be use
 """
 
 import numpy as np
+import torch
+from torch.autograd import Variable
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 import scipy.misc, scipy.ndimage
 from skimage.color import rgb2hsv, hsv2rgb
 from skimage import exposure
-
+import config as cfg
 import pdb, traceback
 
 def gray2rgb(img):
@@ -178,6 +180,32 @@ def elastic_transform(image, alpha, sigma, random_state=None):
     return map_coordinates(image, indices, order=1).reshape(shape)
 
 
+def elastic_transform_pt(image, alpha, sigma, random_state=None):
+    shape = image.shape
+    dx = gaussian_filter((np.random.rand(shape[0], shape[2], shape[3]) * 2 - 1), sigma) * alpha
+    dy = gaussian_filter((np.random.rand(shape[0], shape[2], shape[3]) * 2 - 1), sigma) * alpha
+
+    x, y = np.meshgrid(np.arange(shape[3]), np.arange(shape[2]))
+    x = x.reshape((1,*x.shape,1)).astype(np.float32)*2/shape[3]-1
+    y = y.reshape((1,*y.shape,1)).astype(np.float32)*2/shape[2]-1
+    xy = np.concatenate((x,y), 3)
+    xy = np.repeat(xy, shape[0], axis=0)
+	
+    dx = dx / shape[3]
+    dy = dy / shape[2]
+    xy[:,:,:,0] += dx
+    xy[:,:,:,1] += dy
+    xy[xy>1] = 1
+    xy[xy<-1] = -1
+    if (cfg.CUDA):
+        xy = Variable(torch.from_numpy(xy).cuda())
+    else:
+        xy = Variable(torch.from_numpy(xy).cuda())	
+
+    image[:,0:3,:,:] = torch.nn.functional.grid_sample(image[:,0:3,:,:], xy, mode='nearest')
+    return image
+
+
 def random_transform(img, original=0.15, elastic=0.8, e_sigma=[0.05, 0.1], invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=5):
     """random_transform
     Randomly use the random transformation defined above on img.
@@ -201,9 +229,9 @@ def random_transform(img, original=0.15, elastic=0.8, e_sigma=[0.05, 0.1], inver
     img_trf = np.copy(img)
    
     dice = np.random.uniform(0, 1.0)
-    if (dice < elastic):
-        sigma = np.random.uniform(e_sigma[0], e_sigma[1])
-        img_trf = elastic_transform(img_trf, img_trf.shape[1]*2, img_trf.shape[1]*sigma)
+    #if (dice < elastic):
+    #    sigma = np.random.uniform(e_sigma[0], e_sigma[1])
+    #    img_trf = elastic_transform(img_trf, img_trf.shape[1]*2, img_trf.shape[1]*sigma)
     
     dice = np.random.uniform(0, 1.0) 
     if (dice < scale):

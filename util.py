@@ -10,6 +10,7 @@ import pickle
 import pdb
 import torch
 from torch.autograd import Variable
+import time
 
 def batch_data(file_list, scale_list, istrain):
     """batch_data
@@ -21,7 +22,6 @@ def batch_data(file_list, scale_list, istrain):
     """
     imh = cfg.IMH
     imw = cfg.IMW
-
     batch_size = len(file_list)
     if (cfg.USE_COORD):
         batch = np.zeros((imh,imw,5,batch_size), dtype=np.float32)
@@ -43,11 +43,16 @@ def batch_data(file_list, scale_list, istrain):
             img = np.concatenate((img, grid_x, grid_y), 2)
 
         batch[:,:,:,i] = img
-
-    # Currently, batch has HWCN format
+	
+	# Currently, batch has HWCN format
     # Convert it to NCHW format
     batch = np.transpose(batch, (3, 2, 0, 1))/255.0 
-    return batch
+    batch = np_to_var(batch, cfg.CUDA)
+    dice = np.random.uniform(0, 1.0)
+    if (dice < 0.8):
+        sigma = np.random.uniform(0.05, 0.1)
+        batch = data_augment.elastic_transform_pt(batch, batch.shape[2]*10, batch.shape[2]*sigma)
+    return batch 
 
 
 def batch_target(file_list):
