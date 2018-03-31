@@ -360,8 +360,8 @@ def test():
 
 if __name__ == '__main__':
     # Set random seeds for reproducibility
-    np.random.seed(1991)
-    torch.manual_seed(1991)
+    np.random.seed(1311991)
+    torch.manual_seed(13111991)
 
     train()
     test()
