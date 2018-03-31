@@ -37,7 +37,7 @@ def batch_data(file_list, scale_list, istrain):
         img = data_augment.gray2rgb(img)
         
         if (istrain and cfg.RAND_TRANSFORM):
-            img = data_augment.random_transform(img)
+            img, keep_original = data_augment.random_transform(img)
 
         if (cfg.USE_COORD):
             img = np.concatenate((img, grid_x, grid_y), 2)
@@ -49,9 +49,10 @@ def batch_data(file_list, scale_list, istrain):
     batch = np.transpose(batch, (3, 2, 0, 1))/255.0 
     batch = np_to_var(batch, cfg.CUDA)
     dice = np.random.uniform(0, 1.0)
-    if (dice < 0.8):
-        sigma = np.random.uniform(0.05, 0.1)
-        batch = data_augment.elastic_transform_pt(batch, batch.shape[2]*10, batch.shape[2]*sigma)
+    if (dice < 0.7 and cfg.RAND_TRANSFORM and istrain and not keep_original):
+        sigma = np.random.uniform(0.06, 0.11)
+        batch = data_augment.elastic_transform_pt(batch, batch.shape[2]*6, batch.shape[2]*sigma)
+
     return batch 
 
 
