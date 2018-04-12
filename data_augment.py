@@ -5,6 +5,7 @@ This module contains some necessary random augmentation methods which can be use
 """
 
 import numpy as np
+import cv2
 import torch
 from torch.autograd import Variable
 from scipy.ndimage.interpolation import map_coordinates
@@ -59,7 +60,9 @@ def random_scale(img, min_scale, max_scale, min_pad=0):
     scale_factor = np.random.uniform(min_scale, max_scale)
 
     #img_scale = rescale(img, scale_factor)
-    img_scale = scipy.misc.imresize(img, scale_factor, interp='bicubic')
+    #img_scale = scipy.misc.imresize(img, scale_factor, interp='bicubic')
+    m = cv2.getRotationMatrix2D((imw/2, imh/2), 0, scale_factor)
+    img_scale = cv2.warpAffine(img, m, (imw, imh))
 
     # Cropping
     # Find pixels that are != 0 to avoid cropping them from the image
@@ -152,9 +155,8 @@ def random_rotate(img, angle_std):
     """
     imh, imw, _ = img.shape
     angle = angle_std*np.random.randn(1)
-    img = scipy.ndimage.interpolation.rotate(img, angle)
-
-    img = scipy.misc.imresize(img, [imh, imw], interp='bicubic')
+    r = cv2.getRotationMatrix2D((imw/2, imh/2), angle, 1.0)
+    img = cv2.warpAffine(img, r, (imw, imh))
     return img
 
 
@@ -206,7 +208,7 @@ def elastic_transform_pt(image, alpha, sigma, random_state=None):
     return image
 
 
-def random_transform(img, original=0.3, elastic=0.8, e_sigma=[0.05, 0.1], invert=0.5, scale=1.0, min_scale=0.7, max_scale=1.43, hue=1.0, rotate=1.0, angle_std=5):
+def random_transform(img, original=0.3, elastic=0.8, e_sigma=[0.05, 0.1], invert=0.5, scale=0.5, min_scale=0.8, max_scale=1.25, hue=0.0, rotate=0.5, angle_std=5):
     """random_transform
     Randomly use the random transformation defined above on img.
 
@@ -236,7 +238,7 @@ def random_transform(img, original=0.3, elastic=0.8, e_sigma=[0.05, 0.1], invert
     dice = np.random.uniform(0, 1.0) 
     if (dice < scale):
         img_trf = random_scale(img_trf, min_scale, max_scale)
-    
+            
     dice = np.random.uniform(0, 1.0)
     if (dice < hue):
         img_trf = random_hue(img_trf)
@@ -244,7 +246,7 @@ def random_transform(img, original=0.3, elastic=0.8, e_sigma=[0.05, 0.1], invert
     dice = np.random.uniform(0, 1.0)
     if (dice < rotate):
         img_trf = random_rotate(img_trf, angle_std)
-        
+
     dice = np.random.uniform(0, 1.0)
     if (dice < invert):
         img_trf = invert_img(img_trf)
