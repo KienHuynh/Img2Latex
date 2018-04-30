@@ -12,8 +12,8 @@ LR_DECAY = 1/1.3
 NUM_EPOCH_TO_DECAY = 15
 MOMENTUM = 0.9
 MAX_GRAD_CLIP = 0.1
-GPU_BATCH_SIZE = 12
-NUM_ITE_TO_UPDATE = 4
+GPU_BATCH_SIZE = 16
+NUM_ITE_TO_UPDATE = 3
 RAND_TRANSFORM = True
 
 # Test settings
@@ -21,9 +21,9 @@ BEAM_SIZE = 1
 
 # Saving
 NUM_EPOCH_TO_SAVE = 5 # Save every SAVE_STEP epoch
-SAVE_NAME = 'attend_gru_050418_weight' # MMDDYY
-META_NAME = 'attend_gru_050418_meta'
-TEST_NAME = 'attend_gru_050418_test'
+SAVE_NAME = 'attend_gru_160418_weight' # MMDDYY
+META_NAME = 'attend_gru_160418_meta'
+TEST_NAME = 'attend_gru_160418_test'
 
 # For traking/displaying
 NUM_ITE_TO_LOG = 10 # Display information (loss, current epoch, etc.) every PRINT_STEP iteration

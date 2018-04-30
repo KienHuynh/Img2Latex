@@ -208,7 +208,7 @@ def elastic_transform_pt(image, alpha, sigma, random_state=None):
     return image
 
 
-def random_transform(img, original=0.3, elastic=0.8, e_sigma=[0.05, 0.1], invert=0.5, scale=0.5, min_scale=0.8, max_scale=1.25, hue=0.0, rotate=0.5, angle_std=5):
+def random_transform(img, original=0.2, elastic=1, e_sigma=[0.04, 0.8], invert=0.5, scale=0.5, min_scale=0.8, max_scale=1.25, hue=0.0, rotate=0.0, angle_std=8):
     """random_transform
     Randomly use the random transformation defined above on img.
 
