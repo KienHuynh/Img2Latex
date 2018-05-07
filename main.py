@@ -329,16 +329,26 @@ def test():
         if (not os.path.exists(vis_path_j)):
             os.makedirs(vis_path_j)
         
-        tmp_x = np.sum(batch_x.data.cpu().numpy()[j,:,:,:], axis=0)
+        tmp_x = util.var_to_np(batch_x, use_cuda)[0,:,:,:]
+        tmp_x = np.transpose(tmp_x, (1,2,0))[:,:,0:3]
         attention_np = attention.data.cpu().numpy()[j,1:,:,:]
         pred_string = pred_string[1:]
         for k, word in enumerate(pred_string):
             word = word.replace('/', 'slash_')
             attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
-            attention_k = (scipy.misc.imresize(attention_k, 16.0))/255.0
+            attention_k = (scipy.misc.imresize(attention_k, 16.0, interp='bicubic'))/255.0
             tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
+            attention_k = np.repeat(np.expand_dims(attention_k, 2), 3, 2)
             attention_k += tmp_x
-            attention_k[attention_k>1] = 1
+            attention_k /= 2.0
+            attention_k[attention_k > 255] = 255
+            attention_k = (attention_k).astype(np.uint8)
+
+            #attention_k = attention_np[k,:,:]/np.max(attention_np[k,:,:])*0.8
+            #attention_k = (scipy.misc.imresize(attention_k, 16.0))/255.0
+            #tmp_x = scipy.misc.imresize(tmp_x, attention_k.shape)
+            #attention_k += tmp_x
+            #attention_k[attention_k>1] = 1
             try:
                 scipy.misc.imsave(vis_path_j + ('%02d_%s.jpg' % (k, word)), attention_k)
             except FileNotFoundError:
