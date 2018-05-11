@@ -188,12 +188,12 @@ class AGRU(nn.Module):
         # all_alpha_mat: storing alpha matrices over all time steps, used for visualization purpose.
         # target: the label of the math expression. It is used in training only .
         if use_cuda:
-            GRU_hidden = Variable(torch.FloatTensor(batch_size, self.gru_hidden_size).cuda().zero_())
-            return_tensor = Variable(torch.FloatTensor(start_vector).cuda(), requires_grad=True)
+            GRU_hidden = Variable(torch.FloatTensor(batch_size, self.gru_hidden_size).cuda(cfg.CUDA_DEVICE).zero_())
+            return_tensor = Variable(torch.FloatTensor(start_vector).cuda(cfg.CUDA_DEVICE), requires_grad=True)
             #Init alpha and beta Matrix
-            alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
-            beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda().zero_(), requires_grad=True)
-            all_alpha_mat = Variable(torch.zeros(batch_size, 1, fcn_height,fcn_width).cuda())
+            alpha_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda(cfg.CUDA_DEVICE).fill_(1.0 / float(num_of_block)), requires_grad=True)
+            beta_mat = Variable(torch.FloatTensor(batch_size, fcn_height, fcn_width).cuda(cfg.CUDA_DEVICE).zero_(), requires_grad=True)
+            all_alpha_mat = Variable(torch.zeros(batch_size, 1, fcn_height,fcn_width).cuda(cfg.CUDA_DEVICE))
             if (self.training):
                 target = np.reshape(target.data.cpu(), (batch_size, cfg.MAX_TOKEN_LEN))
 
@@ -278,7 +278,7 @@ class AGRU(nn.Module):
                     last_expected_np[i, last_expected_id[i]] = 1
                 
                 if use_cuda:
-                    return_vector = Variable(torch.FloatTensor(last_expected_np).cuda())
+                    return_vector = Variable(torch.FloatTensor(last_expected_np).cuda(cfg.CUDA_DEVICE))
                 else:
                     return_vector = Variable(torch.FloatTensor(last_expected_np))
 
@@ -418,12 +418,12 @@ class AGRU(nn.Module):
         # all_alpha_mat: storing alpha matrices over all time steps, used for visualization purpose.
         # target: the label of the math expression. It is used in training only .
         if use_cuda:
-            GRU_hidden = Variable(torch.FloatTensor(beam_size, self.gru_hidden_size).cuda().zero_())
-            return_tensor = Variable(torch.FloatTensor(start_vector).cuda(), requires_grad=True)
+            GRU_hidden = Variable(torch.FloatTensor(beam_size, self.gru_hidden_size).cuda(cfg.CUDA_DEVICE).zero_())
+            return_tensor = Variable(torch.FloatTensor(start_vector).cuda(cfg.CUDA_DEVICE), requires_grad=True)
             #Init alpha and beta Matrix
-            alpha_mat = Variable(torch.FloatTensor(beam_size, fcn_height, fcn_width).cuda().fill_(1.0 / float(num_of_block)), requires_grad=True)
-            beta_mat = Variable(torch.FloatTensor(beam_size, fcn_height, fcn_width).cuda().zero_(), requires_grad=True)
-            all_alpha_mat = Variable(torch.zeros(beam_size, 1, fcn_height,fcn_width).cuda())
+            alpha_mat = Variable(torch.FloatTensor(beam_size, fcn_height, fcn_width).cuda(cfg.CUDA_DEVICE).fill_(1.0 / float(num_of_block)), requires_grad=True)
+            beta_mat = Variable(torch.FloatTensor(beam_size, fcn_height, fcn_width).cuda(cfg.CUDA_DEVICE).zero_(), requires_grad=True)
+            all_alpha_mat = Variable(torch.zeros(beam_size, 1, fcn_height,fcn_width).cuda(cfg.CUDA_DEVICE))
             if (self.training):
                 target = np.reshape(target.data.cpu(), (beam_size, cfg.MAX_TOKEN_LEN))
 
@@ -525,7 +525,7 @@ class AGRU(nn.Module):
                     last_expected_np[i, score_index[i]] = 1
                 
                 if use_cuda:
-                    return_vector = Variable(torch.FloatTensor(last_expected_np).cuda())
+                    return_vector = Variable(torch.FloatTensor(last_expected_np).cuda(cfg.CUDA_DEVICE))
                 else:
                     return_vector = Variable(torch.FloatTensor(last_expected_np))
             
