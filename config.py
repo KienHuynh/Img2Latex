@@ -17,13 +17,13 @@ NUM_ITE_TO_UPDATE = 2
 RAND_TRANSFORM = True
 
 # Test settings
-BEAM_SIZE = 1
+BEAM_SIZE = 10
 
 # Saving
 NUM_EPOCH_TO_SAVE = 5 # Save every SAVE_STEP epoch
-SAVE_NAME = 'attend_gru_070518_weight' # MMDDYY
-META_NAME = 'attend_gru_070518_meta'
-TEST_NAME = 'attend_gru_070518_test'
+SAVE_NAME = 'attend_gru_170518_weight' # MMDDYY
+META_NAME = 'attend_gru_170518_meta'
+TEST_NAME = 'attend_gru_170518_test'
 
 # For traking/displaying
 NUM_ITE_TO_LOG = 10 # Display information (loss, current epoch, etc.) every PRINT_STEP iteration
