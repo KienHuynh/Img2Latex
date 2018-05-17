@@ -477,7 +477,7 @@ class AGRU(nn.Module):
         ####################################################################
 #        self.t_alpha_mat = []
         self.print_alpha_mat =[]
-        
+        ended_searches = np.ones((cfg.BEAM_SIZE, 1)) 
         # Reshape target vector so that it has the shape (beam_size, MAX_TOKEN_LEN)
                     
         for RNN_iterate in range (cfg.MAX_TOKEN_LEN - 1):       
@@ -504,7 +504,8 @@ class AGRU(nn.Module):
                 # This is where the branching starts
                 else:
                     #pdb.set_trace()
-                    score_vector = score_vector.reshape(cfg.BEAM_SIZE, 1) + util.softmax((return_vector_np))
+                    score_vector = score_vector.reshape(cfg.BEAM_SIZE, 1) + util.softmax((return_vector_np))*ended_searches
+
                     # Get BEAM_SIZE best prediction out of cfg.BEAM_SIZE * cfg.NUM_OK_TOKEN
                     score_vector_rs = score_vector.flatten()
                     score_index = np.argsort(score_vector_rs)[::-1][0:cfg.BEAM_SIZE]
@@ -520,7 +521,7 @@ class AGRU(nn.Module):
 
                 last_predicted_id = return_vector.max(1)[1].data 
                 last_expected_np = np.zeros((beam_size, cfg.NUM_OF_TOKEN))
-                            
+                        
                 for i in range(beam_size):
                     last_expected_np[i, score_index[i]] = 1
                 
@@ -636,8 +637,10 @@ class AGRU(nn.Module):
             
             stop_mat = np.argmax(util.var_to_np(return_tensor, use_cuda), axis=2)
             stop_mat = (stop_mat == stop_id)
+            ended_searches[:,0] = 1-(stop_mat[:,-1].astype(np.float32))
             stop_mat = (np.sum(stop_mat, axis=1) != 0)
             stop_mat = np.sum(stop_mat)
+            
             if (stop_mat == cfg.BEAM_SIZE):
                 #pdb.set_trace()
                 return return_tensor, all_alpha_mat
