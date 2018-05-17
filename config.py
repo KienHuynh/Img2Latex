@@ -12,8 +12,8 @@ LR_DECAY = 0.5
 NUM_EPOCH_TO_DECAY = 70
 MOMENTUM = 0.9
 MAX_GRAD_CLIP = 0.1
-GPU_BATCH_SIZE = 24
-NUM_ITE_TO_UPDATE = 2
+GPU_BATCH_SIZE = 16
+NUM_ITE_TO_UPDATE = 3
 RAND_TRANSFORM = True
 
 # Test settings
@@ -31,7 +31,7 @@ NUM_ITE_TO_VIS = 50
 VIS_PATH = './../vis/Image2Latex/'
 
 CUDA = True
-
+CUDA_DEVICE = 1
 # Path settings
 DATASET_PATH = './../data/'
 MODEL_FOLDER = './../data/trained/CROHME2013/'

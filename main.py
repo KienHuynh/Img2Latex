@@ -74,7 +74,7 @@ def train():
         print('Loading done.')
 
     if (use_cuda):
-        net.cuda()
+        net.cuda(cfg.CUDA_DEVICE)
 
     # For debugging
     if (not is_train):

@@ -200,9 +200,9 @@ def elastic_transform_pt(image, alpha, sigma, random_state=None):
     xy[xy>1] = 1
     xy[xy<-1] = -1
     if (cfg.CUDA):
-        xy = Variable(torch.from_numpy(xy).cuda())
+        xy = Variable(torch.from_numpy(xy).cuda(cfg.CUDA_DEVICE))
     else:
-        xy = Variable(torch.from_numpy(xy).cuda())	
+        xy = Variable(torch.from_numpy(xy).cuda(cfg.CUDA_DEVICE))	
 
     image[:,0:3,:,:] = torch.nn.functional.grid_sample(image[:,0:3,:,:], xy, mode='nearest')
     return image

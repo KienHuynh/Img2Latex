@@ -87,7 +87,7 @@ def np_to_var(np_array, use_cuda):
     :param use_cuda: boolean, indicating if CUDA will be used.
     """
     if (use_cuda):
-        return Variable(torch.from_numpy(np_array).cuda())
+        return Variable(torch.from_numpy(np_array).cuda(cfg.CUDA_DEVICE))
     else:
         return Variable(torch.from_numpy(np_array))
 
