@@ -209,6 +209,7 @@ def train():
 
                 plt.clf()
                 plt.plot(all_loss)
+                plt.grid(color=[0.5,0.5,0.5], linestyle='--', linewidth=2)
                 plt.show()
                 plt.savefig(vis_path + 'loss.png')
 

@@ -31,7 +31,7 @@ NUM_ITE_TO_VIS = 50
 VIS_PATH = './../vis/Image2Latex/'
 
 CUDA = True
-CUDA_DEVICE = 1
+CUDA_DEVICE = 0
 # Path settings
 DATASET_PATH = './../data/'
 MODEL_FOLDER = './../data/trained/CROHME2013/'
